@@ -10,3 +10,11 @@ class DatabaseManager(object):
     def drop(self, name):
         cursor = connection.cursor()
         cursor.execute("DROP DATABASE %s" % name)
+
+    def create_user(self, username, host):
+        cursor = connection.cursor()
+        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (username, username, host, "123"))
+
+    def drop_user(self, username, host):
+        cursor = connection.cursor()
+        cursor.execute("drop user %s@%s" % (username, host))
