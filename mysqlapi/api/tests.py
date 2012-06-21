@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.db import connection
 from django.test.client import RequestFactory
+from django.utils import simplejson
 
 from mysqlapi.api.models import DatabaseManager
 from mysqlapi.api.views import create, drop
@@ -41,6 +42,15 @@ class DatabaseViewTestCase(TestCase):
         request = RequestFactory().post("/", {"appname": "ciclops"})
         response = create(request)
         self.assertEqual(201, response.status_code)
+        content = simplejson.loads(response.content)
+        expected = {
+            "MYSQL_DATABASE_NAME": "ciclops",
+            "MYSQL_USER": "ciclops",
+            "MYSQL_PASSWORD": "123",
+            "MYSQL_HOST": "localhost",
+            "MYSQL_PORT": "3306",
+        }
+        self.assertDictEqual(expected, content)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
         row = self.cursor.fetchone()

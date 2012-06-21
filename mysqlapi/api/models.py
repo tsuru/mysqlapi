@@ -6,6 +6,8 @@ class DatabaseManager(object):
     def __init__(self, name):
         self.name = name
         self.host = "localhost"
+        self.port = "3306"
+        self.password = "123"
 
     def create(self):
         cursor = connection.cursor()

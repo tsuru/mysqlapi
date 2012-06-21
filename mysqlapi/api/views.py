@@ -1,6 +1,8 @@
 from django.http import HttpResponse
-from mysqlapi.api.models import DatabaseManager
 from django.views.decorators.http import require_http_methods
+from django.utils import simplejson
+
+from mysqlapi.api.models import DatabaseManager
 
 
 @require_http_methods(["POST"])
@@ -8,7 +10,14 @@ def create(request):
     db = DatabaseManager(request.POST["appname"])
     db.create()
     db.create_user()
-    return HttpResponse("", status=201)
+    config = {
+        "MYSQL_DATABASE_NAME": db.name,
+        "MYSQL_USER": db.name,
+        "MYSQL_PASSWORD": db.password,
+        "MYSQL_HOST": db.host,
+        "MYSQL_PORT": db.port,
+    }
+    return HttpResponse(simplejson.dumps(config), status=201)
 
 
 @require_http_methods(["DELETE"])
