@@ -11,6 +11,32 @@ class DatabaseViewTestCase(TestCase):
     def setUp(self):
         self.cursor = connection.cursor()
 
+    def test_create_should_returns_405_when_method_is_not_post(self):
+        request = RequestFactory().get("/")
+        response = create(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().put("/")
+        response = create(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().delete("/")
+        response = create(request)
+        self.assertEqual(405, response.status_code)
+
+    def test_drop_should_returns_405_when_method_is_not_delete(self):
+        request = RequestFactory().get("/")
+        response = drop(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().put("/")
+        response = drop(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().post("/")
+        response = drop(request)
+        self.assertEqual(405, response.status_code)
+
     def test_create(self):
         request = RequestFactory().post("/", {"appname": "ciclops"})
         response = create(request)
