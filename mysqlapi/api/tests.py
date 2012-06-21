@@ -51,14 +51,14 @@ class DatabaseViewTestCase(TestCase):
         self.assertEqual("ciclops", row[0])
         self.assertEqual("localhost", row[1])
 
-        db = DatabaseManager()
-        db.drop_user(username="ciclops", host="localhost")
-        db.drop(name="ciclops")
+        db = DatabaseManager("ciclops")
+        db.drop_user()
+        db.drop()
 
     def test_drop(self):
-        db = DatabaseManager()
-        db.create(name="ciclops")
-        db.create_user(username="ciclops", host="localhost")
+        db = DatabaseManager("ciclops")
+        db.create()
+        db.create_user()
 
         request = RequestFactory().delete("/ciclops")
         response = drop(request, "ciclops")
@@ -79,34 +79,34 @@ class DatabaseTestCase(TestCase):
         self.cursor = connection.cursor()
 
     def test_create(self):
-        db = DatabaseManager()
-        db.create(name="newdatabase")
+        db = DatabaseManager("newdatabase")
+        db.create()
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'newdatabase'")
         row = self.cursor.fetchone()
         self.assertEqual("newdatabase", row[0])
-        db.drop(name="newdatabase")
+        db.drop()
 
     def test_drop(self):
-        db = DatabaseManager()
-        db.create(name="otherdatabase")
-        db.drop(name="otherdatabase")
+        db = DatabaseManager("otherdatabase")
+        db.create()
+        db.drop()
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'otherdatabase'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
 
     def test_create_user(self):
-        db = DatabaseManager()
-        db.create_user(username="wolverine", host="localhost")
+        db = DatabaseManager("wolverine")
+        db.create_user()
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertEqual("wolverine", row[0])
         self.assertEqual("localhost", row[1])
-        db.drop_user(username="wolverine", host="localhost")
+        db.drop_user()
 
     def test_drop_user(self):
-        db = DatabaseManager()
-        db.create_user(username="magneto", host="localhost")
-        db.drop_user(username="magneto", host="localhost")
+        db = DatabaseManager("magneto")
+        db.create_user()
+        db.drop_user()
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertFalse(row)

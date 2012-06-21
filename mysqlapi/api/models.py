@@ -3,18 +3,22 @@ from django.db import connection
 
 class DatabaseManager(object):
 
-    def create(self, name):
-        cursor = connection.cursor()
-        cursor.execute("CREATE DATABASE %s default character set utf8 default collate utf8_general_ci" % name)
+    def __init__(self, name):
+        self.name = name
+        self.host = "localhost"
 
-    def drop(self, name):
+    def create(self):
         cursor = connection.cursor()
-        cursor.execute("DROP DATABASE %s" % name)
+        cursor.execute("CREATE DATABASE %s default character set utf8 default collate utf8_general_ci" % self.name)
 
-    def create_user(self, username, host):
+    def drop(self):
         cursor = connection.cursor()
-        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (username, username, host, "123"))
+        cursor.execute("DROP DATABASE %s" % self.name)
 
-    def drop_user(self, username, host):
+    def create_user(self):
         cursor = connection.cursor()
-        cursor.execute("drop user %s@%s" % (username, host))
+        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, self.name, self.host, "123"))
+
+    def drop_user(self):
+        cursor = connection.cursor()
+        cursor.execute("drop user %s@%s" % (self.name, self.host))
