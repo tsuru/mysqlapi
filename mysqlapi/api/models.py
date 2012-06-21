@@ -4,16 +4,22 @@ import uuid
 import hashlib
 
 
+def generate_password():
+    return hashlib.sha1(uuid.uuid4().hex).hexdigest()
+
 class DatabaseManager(object):
 
     def __init__(self, name):
         self.name = name
         self.host = "localhost"
         self.port = "3306"
+        self._password = None
 
     @property
     def password(self):
-        return hashlib.sha1(uuid.uuid4().hex).hexdigest()
+        if not self._password:
+            self._password = generate_password()
+        return self._password
 
     def create(self):
         cursor = connection.cursor()
