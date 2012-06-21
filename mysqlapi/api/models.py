@@ -1,5 +1,8 @@
 from django.db import connection
 
+import uuid
+import hashlib
+
 
 class DatabaseManager(object):
 
@@ -7,7 +10,10 @@ class DatabaseManager(object):
         self.name = name
         self.host = "localhost"
         self.port = "3306"
-        self.password = "123"
+
+    @property
+    def password(self):
+        return hashlib.sha1(uuid.uuid4().hex).hexdigest()
 
     def create(self):
         cursor = connection.cursor()
@@ -19,7 +25,7 @@ class DatabaseManager(object):
 
     def create_user(self):
         cursor = connection.cursor()
-        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, self.name, self.host, "123"))
+        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, self.name, self.host, self.password))
 
     def drop_user(self):
         cursor = connection.cursor()

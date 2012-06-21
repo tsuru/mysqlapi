@@ -44,11 +44,11 @@ class DatabaseViewTestCase(TestCase):
         self.assertEqual(201, response.status_code)
         content = simplejson.loads(response.content)
         expected = {
-            "MYSQL_DATABASE_NAME": "ciclops",
-            "MYSQL_USER": "ciclops",
-            "MYSQL_PASSWORD": "123",
-            "MYSQL_HOST": "localhost",
-            "MYSQL_PORT": "3306",
+            u"MYSQL_DATABASE_NAME": u"ciclops",
+            u"MYSQL_USER": u"ciclops",
+            u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
+            u"MYSQL_HOST": u"localhost",
+            u"MYSQL_PORT": u"3306",
         }
         self.assertDictEqual(expected, content)
 
