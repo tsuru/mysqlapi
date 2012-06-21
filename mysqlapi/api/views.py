@@ -1,10 +1,12 @@
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
 
 from mysqlapi.api.models import DatabaseManager
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def create(request):
     db = DatabaseManager(request.POST["appname"])
@@ -20,6 +22,7 @@ def create(request):
     return HttpResponse(simplejson.dumps(config), status=201)
 
 
+@csrf_exempt
 @require_http_methods(["DELETE"])
 def drop(request, appname):
     db = DatabaseManager(appname)
