@@ -2,9 +2,17 @@ from django.test import TestCase
 from django.db import connection
 from django.test.client import RequestFactory
 from django.utils import simplejson
+from django.test.utils import override_settings
 
 from mysqlapi.api.models import DatabaseManager
 from mysqlapi.api.views import create, drop
+
+
+DATABASES_MOCK = {
+    'default': {
+        'HOST': 'somehost',
+    }
+}
 
 
 class DatabaseViewTestCase(TestCase):
@@ -38,6 +46,7 @@ class DatabaseViewTestCase(TestCase):
         response = drop(request)
         self.assertEqual(405, response.status_code)
 
+    @override_settings(DATABASES=DATABASES_MOCK)
     def test_create(self):
         request = RequestFactory().post("/", {"appname": "ciclops"})
         response = create(request)
@@ -47,7 +56,7 @@ class DatabaseViewTestCase(TestCase):
             u"MYSQL_DATABASE_NAME": u"ciclops",
             u"MYSQL_USER": u"ciclops",
             u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
-            u"MYSQL_HOST": u"localhost",
+            u"MYSQL_HOST": u"somehost",
             u"MYSQL_PORT": u"3306",
         }
         self.assertDictEqual(expected, content)

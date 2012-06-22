@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
+from django.conf import settings
 
 from mysqlapi.api.models import DatabaseManager
 
@@ -16,7 +17,7 @@ def create(request):
         "MYSQL_DATABASE_NAME": db.name,
         "MYSQL_USER": db.name,
         "MYSQL_PASSWORD": db.password,
-        "MYSQL_HOST": db.host,
+        "MYSQL_HOST": settings.DATABASES["default"]["HOST"],
         "MYSQL_PORT": db.port,
     }
     return HttpResponse(simplejson.dumps(config), status=201)
