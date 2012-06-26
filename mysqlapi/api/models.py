@@ -46,4 +46,4 @@ class DatabaseManager(object):
         self.cursor.execute("drop user %s@%s" % (self.name, self.host))
 
     def export(self):
-        return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"])
+        return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"], stderr=subprocess.STDOUT)

@@ -7,6 +7,8 @@ from django.db import DatabaseError
 
 from mysqlapi.api.models import DatabaseManager
 
+import subprocess
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -45,5 +47,8 @@ def drop(request, appname):
 
 
 def export(request, appname):
-    db = DatabaseManager(appname)
-    return HttpResponse(db.export())
+    try:
+        db = DatabaseManager(appname)
+        return HttpResponse(db.export())
+    except subprocess.CalledProcessError, e:
+        return HttpResponse(e.output.split(":")[-1].strip(), status=500)

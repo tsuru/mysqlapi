@@ -39,6 +39,12 @@ CREATE TABLE `foo` (
         db.drop()
         db.drop_user()
 
+    def test_export_should_returns_500_when_database_does_not_exist(self):
+        request = RequestFactory().get("/", {})
+        response = export(request, "doesnotexists")
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Unknown database 'doesnotexists' when selecting the database", response.content)
+
     def test_create_should_returns_500_when_appname_is_missing(self):
         request = RequestFactory().post("/", {})
         response = create(request)
