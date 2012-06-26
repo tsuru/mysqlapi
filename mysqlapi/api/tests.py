@@ -20,6 +20,18 @@ class DatabaseViewTestCase(TestCase):
     def setUp(self):
         self.cursor = connection.cursor()
 
+    def test_create_should_returns_500_when_appname_is_missing(self):
+        request = RequestFactory().post("/", {})
+        response = create(request)
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("App name is missing", response.content)
+
+    def test_create_should_returns_500_when_appname_is_blank(self):
+        request = RequestFactory().post("/", {"appname": ""})
+        response = create(request)
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("App name is empty", response.content)
+
     def test_create_should_returns_500_and_error_msg_in_body(self):
         db = DatabaseManager("ciclops")
         db.create()

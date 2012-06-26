@@ -11,7 +11,12 @@ from mysqlapi.api.models import DatabaseManager
 @csrf_exempt
 @require_http_methods(["POST"])
 def create(request):
-    db = DatabaseManager(request.POST["appname"])
+    if not "appname" in request.POST:
+        return HttpResponse("App name is missing", status=500)
+    appname = request.POST.get("appname", None)
+    if not appname:
+        return HttpResponse("App name is empty", status=500)
+    db = DatabaseManager(appname)
     try:
         db.create()
         db.create_user()
