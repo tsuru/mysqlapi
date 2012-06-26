@@ -31,6 +31,9 @@ def create(request):
 @require_http_methods(["DELETE"])
 def drop(request, appname):
     db = DatabaseManager(appname)
-    db.drop()
-    db.drop_user()
+    try:
+        db.drop()
+        db.drop_user()
+    except DatabaseError, e:
+        return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)

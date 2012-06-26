@@ -29,6 +29,12 @@ class DatabaseViewTestCase(TestCase):
         self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
         db.drop()
 
+    def test_drop_should_returns_500_and_error_msg_in_body(self):
+        request = RequestFactory().delete("/")
+        response = drop(request, "doesnotexists")
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Can't drop database 'doesnotexists'; database doesn't exist", response.content)
+
     def test_create_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
         response = create(request)
