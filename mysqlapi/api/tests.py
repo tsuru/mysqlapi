@@ -20,6 +20,15 @@ class DatabaseViewTestCase(TestCase):
     def setUp(self):
         self.cursor = connection.cursor()
 
+    def test_create_should_returns_500_and_error_msg_in_body(self):
+        db = DatabaseManager("ciclops")
+        db.create()
+        request = RequestFactory().post("/", {"appname": "ciclops"})
+        response = create(request)
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
+        db.drop()
+
     def test_create_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
         response = create(request)
