@@ -24,7 +24,7 @@ def create(request):
         return HttpResponse(e[1], status=500)
     config = {
         "MYSQL_DATABASE_NAME": db.name,
-        "MYSQL_USER": db.name,
+        "MYSQL_USER": db.username,
         "MYSQL_PASSWORD": db.password,
         "MYSQL_HOST": settings.DATABASES["default"]["HOST"],
         "MYSQL_PORT": db.port,

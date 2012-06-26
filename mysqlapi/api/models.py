@@ -14,6 +14,7 @@ class DatabaseManager(object):
         self.host = "localhost"
         self.port = "3306"
         self._password = None
+        self._username = None
         self.cursor = connection.cursor()
 
     @property
@@ -22,6 +23,15 @@ class DatabaseManager(object):
             self._password = generate_password()
         return self._password
 
+    @property
+    def username(self):
+        if not self._username:
+            if len(self.name) > 16:
+                self._username = self.name[:12] + generate_password()[:4]
+            else:
+                self._username = self.name
+        return self._username
+
     def create(self):
         self.cursor.execute("CREATE DATABASE %s default character set utf8 default collate utf8_general_ci" % self.name)
 
@@ -29,7 +39,7 @@ class DatabaseManager(object):
         self.cursor.execute("DROP DATABASE %s" % self.name)
 
     def create_user(self):
-        self.cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, self.name, self.host, self.password))
+        self.cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, self.username, self.host, self.password))
 
     def drop_user(self):
         self.cursor.execute("drop user %s@%s" % (self.name, self.host))

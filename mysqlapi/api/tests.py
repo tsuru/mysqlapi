@@ -149,6 +149,15 @@ class DatabaseTestCase(TestCase):
         self.assertEqual("localhost", row[1])
         db.drop_user()
 
+    def test_create_user_should_generate_an_username_when_username_length_is_greater_than_16(self):
+        db = DatabaseManager("usernamegreaterthan16")
+        db.create_user()
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User like 'usernamegrea%' AND Host='localhost'")
+        row = self.cursor.fetchone()
+        self.assertEqual("usernamegrea", row[0][:12])
+        db = DatabaseManager(row[0])
+        db.drop_user()
+
     def test_drop_user(self):
         db = DatabaseManager("magneto")
         db.create_user()
