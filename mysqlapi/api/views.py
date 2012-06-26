@@ -42,3 +42,8 @@ def drop(request, appname):
     except DatabaseError, e:
         return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)
+
+
+def export(request, appname):
+    db = DatabaseManager(appname)
+    return HttpResponse(db.export())

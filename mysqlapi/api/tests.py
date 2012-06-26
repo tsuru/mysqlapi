@@ -5,7 +5,7 @@ from django.utils import simplejson
 from django.test.utils import override_settings
 
 from mysqlapi.api.models import DatabaseManager
-from mysqlapi.api.views import create, drop
+from mysqlapi.api.views import create, drop, export
 
 
 DATABASES_MOCK = {
@@ -19,6 +19,25 @@ class DatabaseViewTestCase(TestCase):
 
     def setUp(self):
         self.cursor = connection.cursor()
+
+    def test_export(self):
+        db = DatabaseManager("magneto")
+        db.create()
+        db.create_user()
+        self.cursor.execute("create table magneto.foo ( test varchar(255) );")
+        expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `foo` (
+  `test` varchar(255) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+"""
+        request = RequestFactory().get("/")
+        result = export(request, "magneto")
+        self.assertEqual(200, result.status_code)
+        self.assertEqual(expected, result.content)
+        db.drop()
+        db.drop_user()
 
     def test_create_should_returns_500_when_appname_is_missing(self):
         request = RequestFactory().post("/", {})
@@ -165,3 +184,20 @@ class DatabaseTestCase(TestCase):
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
+
+    def test_export(self):
+        db = DatabaseManager("magneto")
+        db.create()
+        db.create_user()
+        self.cursor.execute("create table magneto.foo ( test varchar(255) );")
+        expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `foo` (
+  `test` varchar(255) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+"""
+        result = db.export()
+        self.assertEqual(expected, result)
+        db.drop()
+        db.drop_user()

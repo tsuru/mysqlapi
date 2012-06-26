@@ -1,7 +1,8 @@
 from django.db import connection
 
-import uuid
 import hashlib
+import subprocess
+import uuid
 
 
 def generate_password():
@@ -43,3 +44,6 @@ class DatabaseManager(object):
 
     def drop_user(self):
         self.cursor.execute("drop user %s@%s" % (self.name, self.host))
+
+    def export(self):
+        return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"])
