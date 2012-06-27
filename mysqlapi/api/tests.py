@@ -45,6 +45,19 @@ CREATE TABLE `foo` (
         self.assertEqual(500, response.status_code)
         self.assertEqual("Unknown database 'doesnotexists' when selecting the database", response.content)
 
+    def test_export_should_returns_405_when_method_is_not_get(self):
+        request = RequestFactory().post("/")
+        response = export(request, "xavier")
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().put("/")
+        response = export(request, "xavier")
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().delete("/")
+        response = export(request, "xavier")
+        self.assertEqual(405, response.status_code)
+
     def test_create_should_returns_500_when_appname_is_missing(self):
         request = RequestFactory().post("/", {})
         response = create(request)

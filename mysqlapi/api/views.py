@@ -46,6 +46,7 @@ def drop(request, appname):
     return HttpResponse("", status=200)
 
 
+@require_http_methods(["GET"])
 def export(request, appname):
     try:
         db = DatabaseManager(appname)
