@@ -5,7 +5,7 @@ from django.utils import simplejson
 from django.test.utils import override_settings
 
 from mysqlapi.api.models import DatabaseManager
-from mysqlapi.api.views import create, drop, export
+from mysqlapi.api.views import export, create_user, create_database, drop_user, drop_database
 
 
 DATABASES_MOCK = {
@@ -15,7 +15,124 @@ DATABASES_MOCK = {
 }
 
 
-class DatabaseViewTestCase(TestCase):
+class CreateDatabaseViewTestCase(TestCase):
+
+    def setUp(self):
+        self.cursor = connection.cursor()
+
+    def test_create_database_should_returns_500_when_appname_is_missing(self):
+        request = RequestFactory().post("/", {})
+        response = create_database(request)
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("App name is missing", response.content)
+
+    def test_create_database_should_returns_500_when_appname_is_blank(self):
+        request = RequestFactory().post("/", {"appname": ""})
+        response = create_database(request)
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("App name is empty", response.content)
+
+    def test_create_database_should_returns_500_and_error_msg_in_body(self):
+        db = DatabaseManager("ciclops")
+        db.create()
+        request = RequestFactory().post("/", {"appname": "ciclops"})
+        response = create_database(request)
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
+        db.drop()
+
+    def test_create_database_should_returns_405_when_method_is_not_post(self):
+        request = RequestFactory().get("/")
+        response = create_database(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().put("/")
+        response = create_database(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().delete("/")
+        response = create_database(request)
+        self.assertEqual(405, response.status_code)
+
+    @override_settings(DATABASES=DATABASES_MOCK)
+    def test_create_database(self):
+        request = RequestFactory().post("/", {"appname": "ciclops"})
+        response = create_database(request)
+        self.assertEqual(201, response.status_code)
+        content = simplejson.loads(response.content)
+        expected = {
+            u"MYSQL_DATABASE_NAME": u"ciclops",
+            u"MYSQL_HOST": u"somehost",
+            u"MYSQL_PORT": u"3306",
+        }
+        self.assertDictEqual(expected, content)
+
+        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
+        row = self.cursor.fetchone()
+        self.assertEqual("ciclops", row[0])
+
+        db = DatabaseManager("ciclops")
+        db.drop()
+
+
+class CreateUserViewTestCase(TestCase):
+
+    def setUp(self):
+        self.cursor = connection.cursor()
+
+    def test_create_user_should_returns_500_when_hostname_is_missing(self):
+        request = RequestFactory().post("/", {})
+        response = create_user(request, "database")
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Hostname is missing", response.content)
+
+    def test_create_user_should_returns_500_when_hostname_name_is_blank(self):
+        request = RequestFactory().post("/", {"hostname": ""})
+        response = create_user(request, "database")
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Hostname is empty", response.content)
+
+    # def test_create_user_should_returns_500_when_database_does_not_exists(self):
+    #     request = RequestFactory().post("/", {"hostname": ""})
+    #     response = create_user(request, "database")
+    #     self.assertEqual(500, response.status_code)
+    #     self.assertEqual("Hostname is empty", response.content)
+
+    def test_create_user_should_returns_405_when_method_is_not_post(self):
+        request = RequestFactory().get("/")
+        response = create_user(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().put("/")
+        response = create_user(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().delete("/")
+        response = create_user(request)
+        self.assertEqual(405, response.status_code)
+
+    @override_settings(DATABASES=DATABASES_MOCK)
+    def test_create_user(self):
+        request = RequestFactory().post("/", {"hostname": "192.168.1.1"})
+        response = create_user(request, "ciclops")
+        self.assertEqual(201, response.status_code)
+        content = simplejson.loads(response.content)
+        expected = {
+            u"MYSQL_USER": u"ciclops",
+            u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
+        }
+        self.assertDictEqual(expected, content)
+
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='192.168.1.1'")
+        row = self.cursor.fetchone()
+        self.assertEqual("ciclops", row[0])
+        self.assertEqual("192.168.1.1", row[1])
+
+        db = DatabaseManager("ciclops", host="192.168.1.1")
+        db.drop_user()
+
+
+class ExportViewTestCase(TestCase):
 
     def setUp(self):
         self.cursor = connection.cursor()
@@ -58,101 +175,77 @@ CREATE TABLE `foo` (
         response = export(request, "xavier")
         self.assertEqual(405, response.status_code)
 
-    def test_create_should_returns_500_when_appname_is_missing(self):
-        request = RequestFactory().post("/", {})
-        response = create(request)
-        self.assertEqual(500, response.status_code)
-        self.assertEqual("App name is missing", response.content)
 
-    def test_create_should_returns_500_when_appname_is_blank(self):
-        request = RequestFactory().post("/", {"appname": ""})
-        response = create(request)
-        self.assertEqual(500, response.status_code)
-        self.assertEqual("App name is empty", response.content)
+class DropUserViewTestCase(TestCase):
 
-    def test_create_should_returns_500_and_error_msg_in_body(self):
-        db = DatabaseManager("ciclops")
-        db.create()
-        request = RequestFactory().post("/", {"appname": "ciclops"})
-        response = create(request)
-        self.assertEqual(500, response.status_code)
-        self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
-        db.drop()
+    def setUp(self):
+        self.cursor = connection.cursor()
 
     def test_drop_should_returns_500_and_error_msg_in_body(self):
         request = RequestFactory().delete("/")
-        response = drop(request, "doesnotexists")
+        response = drop_user(request, "doesnotexists", "hostname")
         self.assertEqual(500, response.status_code)
-        self.assertEqual("Can't drop database 'doesnotexists'; database doesn't exist", response.content)
-
-    def test_create_should_returns_405_when_method_is_not_post(self):
-        request = RequestFactory().get("/")
-        response = create(request)
-        self.assertEqual(405, response.status_code)
-
-        request = RequestFactory().put("/")
-        response = create(request)
-        self.assertEqual(405, response.status_code)
-
-        request = RequestFactory().delete("/")
-        response = create(request)
-        self.assertEqual(405, response.status_code)
+        self.assertEqual("Operation DROP USER failed for 'doesnotexists'@'hostname'", response.content)
 
     def test_drop_should_returns_405_when_method_is_not_delete(self):
         request = RequestFactory().get("/")
-        response = drop(request)
+        response = drop_user(request)
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().put("/")
-        response = drop(request)
+        response = drop_user(request)
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().post("/")
-        response = drop(request)
+        response = drop_user(request)
         self.assertEqual(405, response.status_code)
 
-    @override_settings(DATABASES=DATABASES_MOCK)
-    def test_create(self):
-        request = RequestFactory().post("/", {"appname": "ciclops"})
-        response = create(request)
-        self.assertEqual(201, response.status_code)
-        content = simplejson.loads(response.content)
-        expected = {
-            u"MYSQL_DATABASE_NAME": u"ciclops",
-            u"MYSQL_USER": u"ciclops",
-            u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
-            u"MYSQL_HOST": u"somehost",
-            u"MYSQL_PORT": u"3306",
-        }
-        self.assertDictEqual(expected, content)
+    def test_drop_user(self):
+        db = DatabaseManager("ciclops", host="localhost")
+        db.create_user()
 
-        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
-        row = self.cursor.fetchone()
-        self.assertEqual("ciclops", row[0])
+        request = RequestFactory().delete("/ciclops")
+        response = drop_user(request, "ciclops", "localhost")
+        self.assertEqual(200, response.status_code)
 
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='localhost'")
         row = self.cursor.fetchone()
-        self.assertEqual("ciclops", row[0])
-        self.assertEqual("localhost", row[1])
+        self.assertFalse(row)
 
-        db = DatabaseManager("ciclops")
-        db.drop_user()
-        db.drop()
+
+class DropDatabaseViewTestCase(TestCase):
+
+    def setUp(self):
+        self.cursor = connection.cursor()
+
+    def test_drop_should_returns_500_and_error_msg_in_body(self):
+        request = RequestFactory().delete("/")
+        response = drop_database(request, "doesnotexists")
+        self.assertEqual(500, response.status_code)
+        self.assertEqual("Can't drop database 'doesnotexists'; database doesn't exist", response.content)
+
+    def test_drop_should_returns_405_when_method_is_not_delete(self):
+        request = RequestFactory().get("/")
+        response = drop_database(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().put("/")
+        response = drop_database(request)
+        self.assertEqual(405, response.status_code)
+
+        request = RequestFactory().post("/")
+        response = drop_database(request)
+        self.assertEqual(405, response.status_code)
 
     def test_drop(self):
         db = DatabaseManager("ciclops")
         db.create()
-        db.create_user()
 
         request = RequestFactory().delete("/ciclops")
-        response = drop(request, "ciclops")
+        response = drop_database(request, "ciclops")
         self.assertEqual(200, response.status_code)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
-        row = self.cursor.fetchone()
-        self.assertFalse(row)
-
-        self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
 

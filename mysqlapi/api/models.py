@@ -10,9 +10,9 @@ def generate_password():
 
 class DatabaseManager(object):
 
-    def __init__(self, name):
+    def __init__(self, name, host="localhost"):
         self.name = name
-        self.host = "localhost"
+        self.host = host
         self.port = "3306"
         self._password = None
         self._username = None
