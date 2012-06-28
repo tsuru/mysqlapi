@@ -32,12 +32,12 @@ def create_user(request, database):
 
 @require_http_methods(["POST"])
 def create_database(request):
-    if not "appname" in request.POST:
+    if not "name" in request.POST:
         return HttpResponse("App name is missing", status=500)
-    appname = request.POST.get("appname", None)
-    if not appname:
+    name = request.POST.get("name", None)
+    if not name:
         return HttpResponse("App name is empty", status=500)
-    db = DatabaseManager(appname)
+    db = DatabaseManager(name)
     try:
         db.create()
     except DatabaseError, e:
@@ -63,8 +63,8 @@ def drop_user(request, database, hostname):
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-def drop_database(request, appname):
-    db = DatabaseManager(appname)
+def drop_database(request, name):
+    db = DatabaseManager(name)
     try:
         db.drop()
     except DatabaseError, e:
@@ -73,9 +73,9 @@ def drop_database(request, appname):
 
 
 @require_http_methods(["GET"])
-def export(request, appname):
+def export(request, name):
     try:
-        db = DatabaseManager(appname)
+        db = DatabaseManager(name)
         return HttpResponse(db.export())
     except subprocess.CalledProcessError, e:
         return HttpResponse(e.output.split(":")[-1].strip(), status=500)

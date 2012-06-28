@@ -20,14 +20,14 @@ class CreateDatabaseViewTestCase(TestCase):
     def setUp(self):
         self.cursor = connection.cursor()
 
-    def test_create_database_should_returns_500_when_appname_is_missing(self):
+    def test_create_database_should_returns_500_when_name_is_missing(self):
         request = RequestFactory().post("/", {})
         response = create_database(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("App name is missing", response.content)
 
-    def test_create_database_should_returns_500_when_appname_is_blank(self):
-        request = RequestFactory().post("/", {"appname": ""})
+    def test_create_database_should_returns_500_when_name_is_blank(self):
+        request = RequestFactory().post("/", {"name": ""})
         response = create_database(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("App name is empty", response.content)
@@ -35,7 +35,7 @@ class CreateDatabaseViewTestCase(TestCase):
     def test_create_database_should_returns_500_and_error_msg_in_body(self):
         db = DatabaseManager("ciclops")
         db.create()
-        request = RequestFactory().post("/", {"appname": "ciclops"})
+        request = RequestFactory().post("/", {"name": "ciclops"})
         response = create_database(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
@@ -56,7 +56,7 @@ class CreateDatabaseViewTestCase(TestCase):
 
     @override_settings(DATABASES=DATABASES_MOCK)
     def test_create_database(self):
-        request = RequestFactory().post("/", {"appname": "ciclops"})
+        request = RequestFactory().post("/", {"name": "ciclops"})
         response = create_database(request)
         self.assertEqual(201, response.status_code)
         content = simplejson.loads(response.content)
