@@ -127,8 +127,8 @@ class CreateUserViewTestCase(TestCase):
         self.assertEqual("ciclops", row[0])
         self.assertEqual("192.168.1.1", row[1])
 
-        db = DatabaseManager("ciclops", host="192.168.1.1")
-        db.drop_user()
+        db = DatabaseManager("ciclops")
+        db.drop_user("ciclops", "192.168.1.1")
 
 
 class ExportViewTestCase(TestCase):
@@ -146,7 +146,7 @@ class ExportViewTestCase(TestCase):
     def test_export(self):
         db = DatabaseManager("magneto")
         db.create_database()
-        db.create_user()
+        db.create_user("magneto", "localhost")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -160,7 +160,7 @@ CREATE TABLE `foo` (
         self.assertEqual(200, result.status_code)
         self.assertEqual(expected, result.content)
         db.drop_database()
-        db.drop_user()
+        db.drop_user("magneto", "localhost")
 
     def test_export_should_returns_500_when_database_does_not_exist(self):
         request = RequestFactory().get("/", {})
@@ -214,8 +214,8 @@ class DropUserViewTestCase(TestCase):
         self.assertEqual(405, response.status_code)
 
     def test_drop_user(self):
-        db = DatabaseManager("ciclops", host="localhost")
-        db.create_user()
+        db = DatabaseManager("ciclops")
+        db.create_user("ciclops", "localhost")
 
         request = RequestFactory().delete("/ciclops")
         response = drop_user(request, "ciclops", "localhost")
@@ -309,26 +309,26 @@ class DatabaseTestCase(TestCase):
 
     def test_create_user(self):
         db = DatabaseManager("wolverine")
-        db.create_user()
+        db.create_user("wolverine", "localhost")
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertEqual("wolverine", row[0])
         self.assertEqual("localhost", row[1])
-        db.drop_user()
+        db.drop_user("wolverine", "localhost")
 
     def test_create_user_should_generate_an_username_when_username_length_is_greater_than_16(self):
         db = DatabaseManager("usernamegreaterthan16")
-        db.create_user()
+        username, password = db.create_user("usernamegreaterthan16", "localhost")
         self.cursor.execute("select User, Host FROM mysql.user WHERE User like 'usernamegrea%' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertEqual("usernamegrea", row[0][:12])
         db = DatabaseManager(row[0])
-        db.drop_user()
+        db.drop_user(username, "localhost")
 
     def test_drop_user(self):
         db = DatabaseManager("magneto")
-        db.create_user()
-        db.drop_user()
+        db.create_user("magneto", "localhost")
+        db.drop_user("magneto", "localhost")
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
@@ -336,7 +336,7 @@ class DatabaseTestCase(TestCase):
     def test_export(self):
         db = DatabaseManager("magneto")
         db.create_database()
-        db.create_user()
+        db.create_user("magneto", "localhost")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -348,7 +348,7 @@ CREATE TABLE `foo` (
         result = db.export()
         self.assertEqual(expected, result)
         db.drop_database()
-        db.drop_user()
+        db.drop_user("magneto", "localhost")
 
 
 class DatabaseConnectionTestCase(TestCase):

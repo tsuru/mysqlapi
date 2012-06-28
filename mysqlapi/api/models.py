@@ -12,32 +12,24 @@ def generate_password():
     return hashlib.sha1(uuid.uuid4().hex).hexdigest()
 
 
+def generate_user(username):
+    if len(username) > 16:
+        _username = username[:12] + generate_password()[:4]
+    else:
+        _username = username
+    return _username
+
+
 class DatabaseManager(object):
 
-    def __init__(self, name, host="localhost"):
+    def __init__(self, name):
+    # def __init__(self, name, host="localhost"):
         self.name = name
-        self.host = host
-        self.port = "3306"
-        self._password = None
-        self._username = None
+        # self.host = host
+        self.port = '3306'
         config = settings.DATABASES["default"]
         self.conn = Connection(config.get("HOST", "localhost"), config.get("USER", ""), config.get("PASSWORD", ""), config.get("NAME", ""))
         self.cursor = connection.cursor()
-
-    @property
-    def password(self):
-        if not self._password:
-            self._password = generate_password()
-        return self._password
-
-    @property
-    def username(self):
-        if not self._username:
-            if len(self.name) > 16:
-                self._username = self.name[:12] + generate_password()[:4]
-            else:
-                self._username = self.name
-        return self._username
 
     def create_database(self):
         self.conn.open()
@@ -51,16 +43,19 @@ class DatabaseManager(object):
         cursor.execute("DROP DATABASE %s" % self.name)
         self.conn.close()
 
-    def create_user(self):
+    def create_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, self.username, self.host, self.password))
+        username = generate_user(username)
+        password = generate_password()
+        cursor.execute("grant all privileges on %s.* to %s@%s identified by '%s'" % (self.name, username, host, password))
         self.conn.close()
+        return username, password
 
-    def drop_user(self):
+    def drop_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        cursor.execute("drop user %s@%s" % (self.name, self.host))
+        cursor.execute("drop user %s@%s" % (username, host))
         self.conn.close()
 
     def export(self):

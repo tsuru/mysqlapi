@@ -26,14 +26,14 @@ def create_user(request, name):
     hostname = request.POST.get("hostname", None)
     if not hostname:
         return HttpResponse("Hostname is empty", status=500)
-    db = DatabaseManager(name, host=hostname)
+    db = DatabaseManager(name)
     try:
-        db.create_user()
+        username, password = db.create_user(name, hostname)
     except Exception, e:
         return HttpResponse(e[1], status=500)
     config = {
-        "MYSQL_USER": db.username,
-        "MYSQL_PASSWORD": db.password,
+        "MYSQL_USER": username,
+        "MYSQL_PASSWORD": password,
     }
     return HttpResponse(simplejson.dumps(config), status=201)
 
@@ -62,9 +62,9 @@ def create_database(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def drop_user(request, name, hostname):
-    db = DatabaseManager(name, host=hostname)
+    db = DatabaseManager(name)
     try:
-        db.drop_user()
+        db.drop_user(name, hostname)
     except Exception, e:
         return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)
