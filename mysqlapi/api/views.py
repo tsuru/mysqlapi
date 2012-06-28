@@ -19,15 +19,13 @@ def create_user_or_drop_database(request, name):
         return drop_database(request, name)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def create_user(request, database):
+def create_user(request, name):
     if not "hostname" in request.POST:
         return HttpResponse("Hostname is missing", status=500)
     hostname = request.POST.get("hostname", None)
     if not hostname:
         return HttpResponse("Hostname is empty", status=500)
-    db = DatabaseManager(database, host=hostname)
+    db = DatabaseManager(name, host=hostname)
     try:
         db.create_user()
     except DatabaseError, e:
@@ -39,6 +37,7 @@ def create_user(request, database):
     return HttpResponse(simplejson.dumps(config), status=201)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def create_database(request):
     if not "name" in request.POST:
@@ -61,8 +60,8 @@ def create_database(request):
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-def drop_user(request, database, hostname):
-    db = DatabaseManager(database, host=hostname)
+def drop_user(request, name, hostname):
+    db = DatabaseManager(name, host=hostname)
     try:
         db.drop_user()
     except DatabaseError, e:
