@@ -11,6 +11,15 @@ import subprocess
 
 
 @csrf_exempt
+@require_http_methods(["POST", "DELETE"])
+def create_user_or_drop_database(request, name):
+    if request.method == "POST":
+        return create_user(request, name)
+    if request.method == "DELETE":
+        return drop_database(request, name)
+
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def create_user(request, database):
     if not "hostname" in request.POST:
