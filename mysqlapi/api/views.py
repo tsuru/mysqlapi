@@ -3,7 +3,6 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
 from django.conf import settings
-from django.db import DatabaseError
 
 from mysqlapi.api.models import DatabaseManager
 
@@ -30,7 +29,7 @@ def create_user(request, name):
     db = DatabaseManager(name, host=hostname)
     try:
         db.create_user()
-    except DatabaseError, e:
+    except Exception, e:
         return HttpResponse(e[1], status=500)
     config = {
         "MYSQL_USER": db.username,
@@ -50,7 +49,7 @@ def create_database(request):
     db = DatabaseManager(name)
     try:
         db.create()
-    except DatabaseError, e:
+    except Exception, e:
         return HttpResponse(e[1], status=500)
     config = {
         "MYSQL_DATABASE_NAME": db.name,
@@ -66,7 +65,7 @@ def drop_user(request, name, hostname):
     db = DatabaseManager(name, host=hostname)
     try:
         db.drop_user()
-    except DatabaseError, e:
+    except Exception, e:
         return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)
 
@@ -77,7 +76,7 @@ def drop_database(request, name):
     db = DatabaseManager(name)
     try:
         db.drop()
-    except DatabaseError, e:
+    except Exception, e:
         return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)
 

@@ -1,24 +1,24 @@
 from django.test import TestCase
-from django.db import connection
+# from django.db import connection
 from django.test.client import RequestFactory
 from django.utils import simplejson
-from django.test.utils import override_settings
 
 from mysqlapi.api.models import DatabaseManager
+from mysqlapi.api.database import Connection
 from mysqlapi.api.views import export, create_user, create_database, drop_user, drop_database
-
-
-DATABASES_MOCK = {
-    'default': {
-        'HOST': 'somehost',
-    }
-}
 
 
 class CreateDatabaseViewTestCase(TestCase):
 
-    def setUp(self):
-        self.cursor = connection.cursor()
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.cursor = cls.conn.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
 
     def test_create_database_should_returns_500_when_name_is_missing(self):
         request = RequestFactory().post("/", {})
@@ -54,7 +54,6 @@ class CreateDatabaseViewTestCase(TestCase):
         response = create_database(request)
         self.assertEqual(405, response.status_code)
 
-    @override_settings(DATABASES=DATABASES_MOCK)
     def test_create_database(self):
         request = RequestFactory().post("/", {"name": "ciclops"})
         response = create_database(request)
@@ -62,7 +61,7 @@ class CreateDatabaseViewTestCase(TestCase):
         content = simplejson.loads(response.content)
         expected = {
             u"MYSQL_DATABASE_NAME": u"ciclops",
-            u"MYSQL_HOST": u"somehost",
+            u"MYSQL_HOST": u"localhost",
             u"MYSQL_PORT": u"3306",
         }
         self.assertDictEqual(expected, content)
@@ -77,8 +76,15 @@ class CreateDatabaseViewTestCase(TestCase):
 
 class CreateUserViewTestCase(TestCase):
 
-    def setUp(self):
-        self.cursor = connection.cursor()
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.cursor = cls.conn.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
 
     def test_create_user_should_returns_500_when_hostname_is_missing(self):
         request = RequestFactory().post("/", {})
@@ -105,7 +111,6 @@ class CreateUserViewTestCase(TestCase):
         response = create_user(request, "name")
         self.assertEqual(405, response.status_code)
 
-    @override_settings(DATABASES=DATABASES_MOCK)
     def test_create_user(self):
         request = RequestFactory().post("/", {"hostname": "192.168.1.1"})
         response = create_user(request, "ciclops")
@@ -128,8 +133,15 @@ class CreateUserViewTestCase(TestCase):
 
 class ExportViewTestCase(TestCase):
 
-    def setUp(self):
-        self.cursor = connection.cursor()
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.cursor = cls.conn.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
 
     def test_export(self):
         db = DatabaseManager("magneto")
@@ -172,8 +184,15 @@ CREATE TABLE `foo` (
 
 class DropUserViewTestCase(TestCase):
 
-    def setUp(self):
-        self.cursor = connection.cursor()
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.cursor = cls.conn.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
 
     def test_drop_should_returns_500_and_error_msg_in_body(self):
         request = RequestFactory().delete("/")
@@ -209,8 +228,15 @@ class DropUserViewTestCase(TestCase):
 
 class DropDatabaseViewTestCase(TestCase):
 
-    def setUp(self):
-        self.cursor = connection.cursor()
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.cursor = cls.conn.cursor()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
 
     def test_drop_should_returns_500_and_error_msg_in_body(self):
         request = RequestFactory().delete("/")
@@ -246,9 +272,25 @@ class DropDatabaseViewTestCase(TestCase):
 
 class DatabaseTestCase(TestCase):
 
-    def setUp(self):
-        self.cursor = connection.cursor()
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.cursor = cls.conn.cursor()
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
+
+    # def test_create_database_with_custom_hostname(self):
+    #     import pdb; pdb.set_trace()
+    #     db = DatabaseManager("newdatabase")
+    #     db.create()
+    #     self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'newdatabase'")
+    #     row = self.cursor.fetchone()
+    #     self.assertEqual("newdatabase", row[0])
+    #     # db.drop()
+# 
     def test_create(self):
         db = DatabaseManager("newdatabase")
         db.create()
@@ -307,3 +349,18 @@ CREATE TABLE `foo` (
         self.assertEqual(expected, result)
         db.drop()
         db.drop_user()
+
+
+class DatabaseConnectionTestCase(TestCase):
+
+    def test_connection_should_return_a_connection(self):
+        conn = Connection(hostname="localhost", username="root")
+        conn.open()
+        self.assertTrue(conn._connection)
+        conn.close()
+
+    def test_should_return_cursor(self):
+        conn = Connection(hostname="localhost", username="root")
+        conn.open()
+        self.assertTrue(conn.cursor())
+        conn.close()
