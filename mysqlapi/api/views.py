@@ -19,6 +19,8 @@ def create_user_or_drop_database(request, name):
         return drop_database(request, name)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def create_user(request, name):
     if not "hostname" in request.POST:
         return HttpResponse("Hostname is missing", status=500)

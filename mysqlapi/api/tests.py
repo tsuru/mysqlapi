@@ -92,23 +92,17 @@ class CreateUserViewTestCase(TestCase):
         self.assertEqual(500, response.status_code)
         self.assertEqual("Hostname is empty", response.content)
 
-    # def test_create_user_should_returns_500_when_database_does_not_exists(self):
-    #     request = RequestFactory().post("/", {"hostname": ""})
-    #     response = create_user(request, "database")
-    #     self.assertEqual(500, response.status_code)
-    #     self.assertEqual("Hostname is empty", response.content)
-
     def test_create_user_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
-        response = create_user(request)
+        response = create_user(request, "name")
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().put("/")
-        response = create_user(request)
+        response = create_user(request, "name")
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().delete("/")
-        response = create_user(request)
+        response = create_user(request, "name")
         self.assertEqual(405, response.status_code)
 
     @override_settings(DATABASES=DATABASES_MOCK)
