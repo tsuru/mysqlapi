@@ -1,0 +1,7 @@
+id: mysqlapi
+endpoint:
+  production: mysqlapi.com
+  test: localhost:8000
+bootstrap:
+  ami: ami-00000007
+  when: on-new-instance
