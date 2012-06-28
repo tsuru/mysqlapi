@@ -39,13 +39,13 @@ class DatabaseManager(object):
                 self._username = self.name
         return self._username
 
-    def create(self):
+    def create_database(self):
         self.conn.open()
         cursor = self.conn.cursor()
         cursor.execute("CREATE DATABASE %s default character set utf8 default collate utf8_general_ci" % self.name)
         self.conn.close()
 
-    def drop(self):
+    def drop_database(self):
         self.conn.open()
         cursor = self.conn.cursor()
         cursor.execute("DROP DATABASE %s" % self.name)

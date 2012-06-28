@@ -48,7 +48,7 @@ def create_database(request):
         return HttpResponse("App name is empty", status=500)
     db = DatabaseManager(name)
     try:
-        db.create()
+        db.create_database()
     except Exception, e:
         return HttpResponse(e[1], status=500)
     config = {
@@ -75,7 +75,7 @@ def drop_user(request, name, hostname):
 def drop_database(request, name):
     db = DatabaseManager(name)
     try:
-        db.drop()
+        db.drop_database()
     except Exception, e:
         return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)

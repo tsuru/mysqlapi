@@ -34,12 +34,12 @@ class CreateDatabaseViewTestCase(TestCase):
 
     def test_create_database_should_returns_500_and_error_msg_in_body(self):
         db = DatabaseManager("ciclops")
-        db.create()
+        db.create_database()
         request = RequestFactory().post("/", {"name": "ciclops"})
         response = create_database(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
-        db.drop()
+        db.drop_database()
 
     def test_create_database_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
@@ -71,7 +71,7 @@ class CreateDatabaseViewTestCase(TestCase):
         self.assertEqual("ciclops", row[0])
 
         db = DatabaseManager("ciclops")
-        db.drop()
+        db.drop_database()
 
 
 class CreateUserViewTestCase(TestCase):
@@ -145,7 +145,7 @@ class ExportViewTestCase(TestCase):
 
     def test_export(self):
         db = DatabaseManager("magneto")
-        db.create()
+        db.create_database()
         db.create_user()
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -159,7 +159,7 @@ CREATE TABLE `foo` (
         result = export(request, "magneto")
         self.assertEqual(200, result.status_code)
         self.assertEqual(expected, result.content)
-        db.drop()
+        db.drop_database()
         db.drop_user()
 
     def test_export_should_returns_500_when_database_does_not_exist(self):
@@ -259,7 +259,7 @@ class DropDatabaseViewTestCase(TestCase):
 
     def test_drop(self):
         db = DatabaseManager("ciclops")
-        db.create()
+        db.create_database()
 
         request = RequestFactory().delete("/ciclops")
         response = drop_database(request, "ciclops")
@@ -285,24 +285,24 @@ class DatabaseTestCase(TestCase):
     # def test_create_database_with_custom_hostname(self):
     #     import pdb; pdb.set_trace()
     #     db = DatabaseManager("newdatabase")
-    #     db.create()
+    #     db.create_database()
     #     self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'newdatabase'")
     #     row = self.cursor.fetchone()
     #     self.assertEqual("newdatabase", row[0])
-    #     # db.drop()
+    #     # db.drop_database()
 # 
     def test_create(self):
         db = DatabaseManager("newdatabase")
-        db.create()
+        db.create_database()
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'newdatabase'")
         row = self.cursor.fetchone()
         self.assertEqual("newdatabase", row[0])
-        db.drop()
+        db.drop_database()
 
     def test_drop(self):
         db = DatabaseManager("otherdatabase")
-        db.create()
-        db.drop()
+        db.create_database()
+        db.drop_database()
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'otherdatabase'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
@@ -335,7 +335,7 @@ class DatabaseTestCase(TestCase):
 
     def test_export(self):
         db = DatabaseManager("magneto")
-        db.create()
+        db.create_database()
         db.create_user()
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -347,7 +347,7 @@ CREATE TABLE `foo` (
 """
         result = db.export()
         self.assertEqual(expected, result)
-        db.drop()
+        db.drop_database()
         db.drop_user()
 
 
