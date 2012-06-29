@@ -282,15 +282,14 @@ class DatabaseTestCase(TestCase):
     def tearDownClass(cls):
         cls.conn.close()
 
-    # def test_create_database_with_custom_hostname(self):
-    #     import pdb; pdb.set_trace()
-    #     db = DatabaseManager("newdatabase")
-    #     db.create_database()
-    #     self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'newdatabase'")
-    #     row = self.cursor.fetchone()
-    #     self.assertEqual("newdatabase", row[0])
-    #     # db.drop_database()
-# 
+    def test_create_database_with_custom_hostname(self):
+        db = DatabaseManager("newdatabase", host="127.0.0.1")
+        db.create_database()
+        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'newdatabase'")
+        row = self.cursor.fetchone()
+        self.assertEqual("newdatabase", row[0])
+        db.drop_database()
+
     def test_create(self):
         db = DatabaseManager("newdatabase")
         db.create_database()

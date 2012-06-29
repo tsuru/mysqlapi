@@ -22,13 +22,12 @@ def generate_user(username):
 
 class DatabaseManager(object):
 
-    def __init__(self, name):
-    # def __init__(self, name, host="localhost"):
+    def __init__(self, name, host="localhost", user="root", password=""):
         self.name = name
-        # self.host = host
+        self.host = host
         self.port = '3306'
         config = settings.DATABASES["default"]
-        self.conn = Connection(config.get("HOST", "localhost"), config.get("USER", ""), config.get("PASSWORD", ""), config.get("NAME", ""))
+        self.conn = Connection(self.host, user, password, "")
         self.cursor = connection.cursor()
 
     def create_database(self):
