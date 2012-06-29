@@ -281,6 +281,18 @@ class DropUserViewTestCase(TestCase):
         row = self.cursor.fetchone()
         self.assertFalse(row)
 
+    def test_drop_user_fom_custom_service_host(self):
+        db = DatabaseManager("ciclops", "127.0.0.1")
+        db.create_user("ciclops", "localhost")
+
+        request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
+        response = drop_user(request, "ciclops", "localhost")
+        self.assertEqual(200, response.status_code)
+
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='localhost'")
+        row = self.cursor.fetchone()
+        self.assertFalse(row)
+
 
 class DropDatabaseViewTestCase(TestCase):
 
