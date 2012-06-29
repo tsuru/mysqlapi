@@ -73,6 +73,24 @@ class CreateDatabaseViewTestCase(TestCase):
         db = DatabaseManager("ciclops")
         db.drop_database()
 
+    def test_create_database_in_a_custom_service_host(self):
+        request = RequestFactory().post("/", {"name": "ciclops", "service_host": "127.0.0.1"})
+        response = create_database(request)
+        self.assertEqual(201, response.status_code)
+        content = simplejson.loads(response.content)
+        expected = {
+            u"MYSQL_DATABASE_NAME": u"ciclops",
+            u"MYSQL_HOST": u"127.0.0.1",
+            u"MYSQL_PORT": u"3306",
+        }
+        self.assertDictEqual(expected, content)
+
+        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
+        row = self.cursor.fetchone()
+        self.assertEqual("ciclops", row[0])
+
+        db = DatabaseManager("ciclops")
+        db.drop_database()
 
 class CreateUserViewTestCase(TestCase):
 

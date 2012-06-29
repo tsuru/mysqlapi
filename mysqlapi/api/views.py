@@ -46,14 +46,15 @@ def create_database(request):
     name = request.POST.get("name", None)
     if not name:
         return HttpResponse("App name is empty", status=500)
-    db = DatabaseManager(name)
+    host = request.POST.get("service_host", "localhost")
+    db = DatabaseManager(name, host)
     try:
         db.create_database()
     except Exception, e:
         return HttpResponse(e[1], status=500)
     config = {
         "MYSQL_DATABASE_NAME": db.name,
-        "MYSQL_HOST": settings.DATABASES["default"]["HOST"],
+        "MYSQL_HOST": db.host,
         "MYSQL_PORT": db.port,
     }
     return HttpResponse(simplejson.dumps(config), status=201)
