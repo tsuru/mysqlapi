@@ -26,7 +26,8 @@ def create_user(request, name):
     hostname = request.POST.get("hostname", None)
     if not hostname:
         return HttpResponse("Hostname is empty", status=500)
-    db = DatabaseManager(name)
+    host = request.POST.get("service_host", "localhost")
+    db = DatabaseManager(name, host)
     try:
         username, password = db.create_user(name, hostname)
     except Exception, e:

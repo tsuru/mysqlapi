@@ -148,6 +148,25 @@ class CreateUserViewTestCase(TestCase):
         db = DatabaseManager("ciclops")
         db.drop_user("ciclops", "192.168.1.1")
 
+    def test_create_user_in_a_custom_service_host(self):
+        request = RequestFactory().post("/", {"hostname": "192.168.1.1", "service_host": "127.0.0.1"})
+        response = create_user(request, "ciclops")
+        self.assertEqual(201, response.status_code)
+        content = simplejson.loads(response.content)
+        expected = {
+            u"MYSQL_USER": u"ciclops",
+            u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
+        }
+        self.assertDictEqual(expected, content)
+
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='192.168.1.1'")
+        row = self.cursor.fetchone()
+        self.assertEqual("ciclops", row[0])
+        self.assertEqual("192.168.1.1", row[1])
+
+        db = DatabaseManager("ciclops")
+        db.drop_user("ciclops", "192.168.1.1")
+
 
 class ExportViewTestCase(TestCase):
 
