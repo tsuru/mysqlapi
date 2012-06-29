@@ -1,6 +1,3 @@
-from django.db import connection
-from django.conf import settings
-
 from mysqlapi.api.database import Connection
 
 import hashlib
@@ -26,9 +23,7 @@ class DatabaseManager(object):
         self.name = name
         self.host = host
         self.port = '3306'
-        config = settings.DATABASES["default"]
         self.conn = Connection(self.host, user, password, "")
-        self.cursor = connection.cursor()
 
     def create_database(self):
         self.conn.open()
