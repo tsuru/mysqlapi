@@ -85,8 +85,9 @@ def drop_database(request, name):
 
 @require_http_methods(["GET"])
 def export(request, name):
+    host = request.GET.get("service_host", "localhost")
     try:
-        db = DatabaseManager(name)
+        db = DatabaseManager(name, host)
         return HttpResponse(db.export())
     except subprocess.CalledProcessError, e:
         return HttpResponse(e.output.split(":")[-1].strip(), status=500)

@@ -180,6 +180,25 @@ class ExportViewTestCase(TestCase):
     def tearDownClass(cls):
         cls.conn.close()
 
+    def test_export_from_a_custom_service_host(self):
+        db = DatabaseManager("magneto", host="127.0.0.1")
+        db.create_database()
+        db.create_user("magneto", "localhost")
+        self.cursor.execute("create table magneto.foo ( test varchar(255) );")
+        expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `foo` (
+  `test` varchar(255) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+"""
+        request = RequestFactory().get("/", {"service_host": "127.0.0.1"})
+        result = export(request, "magneto")
+        self.assertEqual(200, result.status_code)
+        self.assertEqual(expected, result.content)
+        db.drop_database()
+        db.drop_user("magneto", "localhost")
+
     def test_export(self):
         db = DatabaseManager("magneto")
         db.create_database()
