@@ -64,7 +64,8 @@ def create_database(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def drop_user(request, name, hostname):
-    db = DatabaseManager(name)
+    host = request.GET.get("service_host", "localhost")
+    db = DatabaseManager(name, host)
     try:
         db.drop_user(name, hostname)
     except Exception, e:

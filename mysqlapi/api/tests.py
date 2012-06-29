@@ -337,6 +337,18 @@ class DropDatabaseViewTestCase(TestCase):
         row = self.cursor.fetchone()
         self.assertFalse(row)
 
+    def test_drop_from_a_custom_service_host(self):
+        db = DatabaseManager("ciclops", "127.0.0.1")
+        db.create_database()
+
+        request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
+        response = drop_database(request, "ciclops")
+        self.assertEqual(200, response.status_code)
+
+        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
+        row = self.cursor.fetchone()
+        self.assertFalse(row)
+
 
 class DatabaseTestCase(TestCase):
 
