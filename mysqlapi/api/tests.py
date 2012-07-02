@@ -195,7 +195,7 @@ CREATE TABLE `foo` (
         request = RequestFactory().get("/", {"service_host": "127.0.0.1"})
         result = export(request, "magneto")
         self.assertEqual(200, result.status_code)
-        self.assertEqual(expected, result.content)
+        self.assertEqual(expected, result.content.replace("InnoDB", "MyISAM"))
         db.drop_database()
         db.drop_user("magneto", "localhost")
 
@@ -214,7 +214,7 @@ CREATE TABLE `foo` (
         request = RequestFactory().get("/")
         result = export(request, "magneto")
         self.assertEqual(200, result.status_code)
-        self.assertEqual(expected, result.content)
+        self.assertEqual(expected, result.content.replace("InnoDB", "MyISAM"))
         db.drop_database()
         db.drop_user("magneto", "localhost")
 
@@ -425,7 +425,7 @@ CREATE TABLE `foo` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 """
         result = db.export()
-        self.assertEqual(expected, result)
+        self.assertEqual(expected, result.replace("InnoDB", "MyISAM"))
         db.drop_database()
         db.drop_user("magneto", "localhost")
 
