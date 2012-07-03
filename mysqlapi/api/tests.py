@@ -92,6 +92,7 @@ class CreateDatabaseViewTestCase(TestCase):
         db = DatabaseManager("ciclops")
         db.drop_database()
 
+
 class CreateUserViewTestCase(TestCase):
 
     @classmethod
