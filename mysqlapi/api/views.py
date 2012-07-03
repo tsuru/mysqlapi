@@ -9,6 +9,13 @@ from django.views.decorators.csrf import csrf_exempt
 from mysqlapi.api.models import DatabaseManager
 
 
+def _get_service_host(dict):
+    host = dict.get("service_host")
+    if not host:
+        host = "localhost"
+    return host
+
+
 @csrf_exempt
 @require_http_methods(["POST", "DELETE"])
 def create_user_or_drop_database(request, name):
@@ -26,7 +33,7 @@ def create_user(request, name):
     hostname = request.POST.get("hostname", None)
     if not hostname:
         return HttpResponse("Hostname is empty", status=500)
-    host = request.POST.get("service_host", "localhost")
+    host = _get_service_host(request.POST)
     db = DatabaseManager(name, host)
     try:
         username, password = db.create_user(name, hostname)
@@ -47,7 +54,7 @@ def create_database(request):
     name = request.POST.get("name", None)
     if not name:
         return HttpResponse("App name is empty", status=500)
-    host = request.POST.get("service_host", "localhost")
+    host = _get_service_host(request.POST)
     db = DatabaseManager(name, host)
     try:
         db.create_database()
@@ -64,7 +71,7 @@ def create_database(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def drop_user(request, name, hostname):
-    host = request.GET.get("service_host", "localhost")
+    host = _get_service_host(request.GET)
     db = DatabaseManager(name, host)
     try:
         db.drop_user(name, hostname)
@@ -76,7 +83,7 @@ def drop_user(request, name, hostname):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def drop_database(request, name):
-    host = request.GET.get("service_host", "localhost")
+    host = _get_service_host(request.GET)
     db = DatabaseManager(name, host)
     try:
         db.drop_database()

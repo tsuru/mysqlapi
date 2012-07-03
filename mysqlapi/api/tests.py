@@ -5,7 +5,7 @@ from django.utils import simplejson
 
 from mysqlapi.api.models import DatabaseManager
 from mysqlapi.api.database import Connection
-from mysqlapi.api.views import export, create_user, create_database, drop_user, drop_database
+from mysqlapi.api.views import _get_service_host, export, create_user, create_database, drop_user, drop_database
 
 
 class CreateDatabaseViewTestCase(TestCase):
@@ -444,3 +444,15 @@ class DatabaseConnectionTestCase(TestCase):
         conn.open()
         self.assertTrue(conn.cursor())
         conn.close()
+
+
+class GetServiceHostTestCase(TestCase):
+
+    def test_get_service_host_returns_localhost_if_the_key_is_not_present(self):
+        self.assertEqual("localhost", _get_service_host({}))
+
+    def test_get_service_host_returns_the_value_of_service_host_key_if_present(self):
+        self.assertEqual("service.net", _get_service_host({"service_host": "service.net"}))
+
+    def test_get_service_host_returns_localhost_if_the_key_is_an_empty_string(self):
+        self.assertEqual("localhost", _get_service_host({"service_host": ""}))
