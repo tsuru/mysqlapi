@@ -1,8 +1,9 @@
-from mysqlapi.api.database import Connection
-
 import hashlib
+import os
 import subprocess
 import uuid
+
+from mysqlapi.api.database import Connection
 
 
 def generate_password():
@@ -21,9 +22,9 @@ class DatabaseManager(object):
 
     def __init__(self, name, host="localhost", user="root", password=""):
         self.name = name
-        self.host = host
+        self._host = host
         self.port = '3306'
-        self.conn = Connection(self.host, user, password, "")
+        self.conn = Connection(self._host, user, password, "")
 
     def create_database(self):
         self.conn.open()
@@ -54,3 +55,9 @@ class DatabaseManager(object):
 
     def export(self):
         return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"], stderr=subprocess.STDOUT)
+
+    @property
+    def host(self):
+        if self._host == "localhost":
+            return os.environ.get("MYSQLAPI_DATABASE_HOST", "localhost")
+        return self._host

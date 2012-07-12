@@ -1,5 +1,6 @@
+import os
+
 from django.test import TestCase
-# from django.db import connection
 from django.test.client import RequestFactory
 from django.utils import simplejson
 
@@ -71,6 +72,24 @@ class CreateDatabaseViewTestCase(TestCase):
         self.assertEqual("ciclops", row[0])
 
         db = DatabaseManager("ciclops")
+        db.drop_database()
+
+    def test_create_database_returns_the_host_from_environment_variable(self):
+        os.environ["MYSQLAPI_DATABASE_HOST"] = "10.0.1.100"
+        request = RequestFactory().post("/", {"name": "plains_of_dawn"})
+        response = create_database(request)
+        self.assertEqual(201, response.status_code)
+        content = simplejson.loads(response.content)
+        expected = {
+            u"MYSQL_DATABASE_NAME": u"plains_of_dawn",
+            u"MYSQL_HOST": u"10.0.1.100",
+            u"MYSQL_PORT": u"3306",
+        }
+        self.assertEqual(expected, content)
+        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'plains_of_dawn'")
+        row = self.cursor.fetchone()
+        self.assertEqual("plains_of_dawn", row[0])
+        db = DatabaseManager("plains_of_dawn")
         db.drop_database()
 
     def test_create_database_in_a_custom_service_host(self):
