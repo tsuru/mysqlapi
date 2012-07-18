@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import traceback
 
 from django.test import TestCase
 from django.test.client import RequestFactory
@@ -473,6 +474,14 @@ class DatabaseConnectionTestCase(TestCase):
         conn.open()
         self.assertTrue(conn.cursor())
         conn.close()
+
+    def test_close_does_not_fail_when_connection_is_None(self):
+        conn = Connection(hostname="localhost", username="root")
+        try:
+            conn.close()
+        except Exception as e:
+            self.fail("Should not raise any exception when closing a None connection, but raised:\n%s" %
+                    traceback.format_exc(e))
 
 
 class GetServiceHostTestCase(TestCase):

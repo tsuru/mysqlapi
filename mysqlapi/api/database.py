@@ -15,8 +15,9 @@ class Connection(object):
             self._connection = MySQLdb.connect(self.hostname, self.username, self.password, self.database)
 
     def close(self):
-        self._connection.close()
-        self._connection = None
+        if self._connection:
+            self._connection.close()
+            self._connection = None
 
     def cursor(self):
         return self._connection.cursor()
