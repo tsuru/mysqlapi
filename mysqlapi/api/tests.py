@@ -459,6 +459,7 @@ CREATE TABLE `foo` (
         db = DatabaseManager("wolverine", host="unknownhost.absolute.impossibru.moc")
         self.assertFalse(db.is_up())
 
+
 class DatabaseConnectionTestCase(TestCase):
 
     def test_connection_should_return_a_connection(self):
