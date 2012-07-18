@@ -57,7 +57,13 @@ class DatabaseManager(object):
         return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"], stderr=subprocess.STDOUT)
 
     def is_up(self):
-        pass
+        try:
+            self.conn.open()
+            return True
+        except:
+            return False
+        finally:
+            self.conn.close()
 
     @property
     def host(self):

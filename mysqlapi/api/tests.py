@@ -451,6 +451,13 @@ CREATE TABLE `foo` (
         db.drop_database()
         db.drop_user("magneto", "localhost")
 
+    def test_is_up_return_True_if_everything_is_ok_with_the_connection(self):
+        db = DatabaseManager("wolverine")
+        self.assertTrue(db.is_up())
+
+    def test_is_up_return_False_something_is_not_ok_with_the_connection(self):
+        db = DatabaseManager("wolverine", host="unknownhost.absolute.impossibru.moc")
+        self.assertFalse(db.is_up())
 
 class DatabaseConnectionTestCase(TestCase):
 
