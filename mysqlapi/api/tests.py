@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 import os
 
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.utils import simplejson
+from mocker import Mocker
 
 from mysqlapi.api.models import DatabaseManager
 from mysqlapi.api.database import Connection
-from mysqlapi.api.views import _get_service_host, export, create_user, create_database, drop_user, drop_database
+from mysqlapi.api.views import _get_service_host, export, create_user, create_database, drop_user, drop_database, healthcheck
 
 
 class CreateDatabaseViewTestCase(TestCase):
@@ -475,3 +477,28 @@ class GetServiceHostTestCase(TestCase):
 
     def test_get_service_host_returns_localhost_if_the_key_is_an_empty_string(self):
         self.assertEqual("localhost", _get_service_host({"service_host": ""}))
+
+
+class HealthcheckTestCase(TestCase):
+
+    def test_healthcheck_returns_204_if_the_mysql_server_is_on(self):
+        mocker = Mocker()
+        obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
+        obj()
+        mocker.result(True)
+        mocker.replay()
+        request = RequestFactory().get("/resources/g8mysql/status/")
+        response = healthcheck(request, "g8mysql")
+        self.assertEqual(204, response.status_code)
+        mocker.verify()
+
+    def test_healthcheck_returns_500_if_the_mysql_server_is_off(self):
+        mocker = Mocker()
+        obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
+        obj()
+        mocker.result(False)
+        mocker.replay()
+        request = RequestFactory().get("/resources/g8mysql/status/")
+        response = healthcheck(request, "g8mysql")
+        self.assertEqual(500, response.status_code)
+        mocker.verify()

@@ -56,6 +56,9 @@ class DatabaseManager(object):
     def export(self):
         return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"], stderr=subprocess.STDOUT)
 
+    def is_up(self):
+        pass
+
     @property
     def host(self):
         if self._host == "localhost":
