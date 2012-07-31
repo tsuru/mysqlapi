@@ -9,7 +9,7 @@ from django.test.client import RequestFactory
 from mocker import Mocker
 
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import DatabaseManager
+from mysqlapi.api.models import DatabaseManager, Instance
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
@@ -163,6 +163,8 @@ class CreateDatabaseViewTestCase(TestCase):
             response = view.post(request)
             self.assertEqual(201, response.status_code, response.content)
             self.assertIn("instance with ami %s and key %s and groups default" % (settings.EC2_AMI, settings.EC2_KEY_NAME), fake.instances)
+            instance = Instance.objects.get(instance_id="i-00000302", name="professor_xavier")
+            self.assertIsNotNone(instance.pk)
         finally:
             db = DatabaseManager("professor_xavier")
             db.drop_database()
