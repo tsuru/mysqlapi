@@ -84,4 +84,4 @@ class Instance(models.Model):
     name = models.CharField(max_length=100)
     instance_id = models.CharField(max_length=100)
     state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
-    host = models.CharField(max_length=50)
+    host = models.CharField(max_length=50, null=True, blank=True)
