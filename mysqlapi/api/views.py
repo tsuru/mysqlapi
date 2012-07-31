@@ -65,16 +65,16 @@ class CreateDatabase(View):
         name = request.POST.get("name", None)
         if not name:
             return HttpResponse("App name is empty", status=500)
+        reservation = self.ec2_conn.run_instances(
+            settings.EC2_AMI,
+            key_name=settings.EC2_KEY_NAME,
+            security_groups=["default"],
+        )
+        Instance.objects.create(instance_id=reservation.instances[0].id, name=name)
         host = _get_service_host(request.POST)
         db = DatabaseManager(name, host)
         try:
             db.create_database()
-            reservation = self.ec2_conn.run_instances(
-                settings.EC2_AMI,
-                key_name=settings.EC2_KEY_NAME,
-                security_groups=["default"],
-            )
-            Instance.objects.create(instance_id=reservation.instances[0].id, name=name)
         except Exception, e:
             return HttpResponse(e[1], status=500)
         config = {
