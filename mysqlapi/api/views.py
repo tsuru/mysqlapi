@@ -4,7 +4,6 @@ import subprocess
 from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 
 from mysqlapi.api.models import DatabaseManager
 
@@ -16,7 +15,6 @@ def _get_service_host(dict):
     return host
 
 
-@csrf_exempt
 @require_http_methods(["POST", "DELETE"])
 def create_user_or_drop_database(request, name):
     if request.method == "POST":
@@ -25,7 +23,6 @@ def create_user_or_drop_database(request, name):
         return drop_database(request, name)
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def create_user(request, name):
     if not "hostname" in request.POST:
@@ -46,7 +43,6 @@ def create_user(request, name):
     return HttpResponse(simplejson.dumps(config), status=201)
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def create_database(request):
     if not "name" in request.POST:
@@ -68,7 +64,6 @@ def create_database(request):
     return HttpResponse(simplejson.dumps(config), status=201)
 
 
-@csrf_exempt
 @require_http_methods(["DELETE"])
 def drop_user(request, name, hostname):
     host = _get_service_host(request.GET)
@@ -80,7 +75,6 @@ def drop_user(request, name, hostname):
     return HttpResponse("", status=200)
 
 
-@csrf_exempt
 @require_http_methods(["DELETE"])
 def drop_database(request, name):
     host = _get_service_host(request.GET)
