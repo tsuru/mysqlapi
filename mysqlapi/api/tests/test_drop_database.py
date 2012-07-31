@@ -4,7 +4,8 @@ from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import DatabaseManager
-from mysqlapi.api.views import drop_database
+from mysqlapi.api.tests import mocks
+from mysqlapi.api.views import DropDatabase
 
 
 class DropDatabaseViewTestCase(TestCase):
@@ -21,21 +22,21 @@ class DropDatabaseViewTestCase(TestCase):
 
     def test_drop_should_returns_500_and_error_msg_in_body(self):
         request = RequestFactory().delete("/")
-        response = drop_database(request, "doesnotexists")
+        response = DropDatabase().delete(request, name="doesnotexists")
         self.assertEqual(500, response.status_code)
         self.assertEqual("Can't drop database 'doesnotexists'; database doesn't exist", response.content)
 
     def test_drop_should_returns_405_when_method_is_not_delete(self):
         request = RequestFactory().get("/")
-        response = drop_database(request)
+        response = DropDatabase.as_view()(request, name="foo")
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().put("/")
-        response = drop_database(request)
+        response = DropDatabase.as_view()(request, name="foo")
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().post("/")
-        response = drop_database(request)
+        response = DropDatabase.as_view()(request, name="foo")
         self.assertEqual(405, response.status_code)
 
     def test_drop(self):
@@ -43,7 +44,7 @@ class DropDatabaseViewTestCase(TestCase):
         db.create_database()
 
         request = RequestFactory().delete("/ciclops")
-        response = drop_database(request, "ciclops")
+        response = DropDatabase().delete(request, "ciclops")
         self.assertEqual(200, response.status_code)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
@@ -55,9 +56,13 @@ class DropDatabaseViewTestCase(TestCase):
         db.create_database()
 
         request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
-        response = drop_database(request, "ciclops")
+        response = DropDatabase().delete(request, "ciclops")
         self.assertEqual(200, response.status_code)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
+
+    # def test_should_remove_ec2_instance(self):
+    #     fake = mocks.FakeEC2Conn()
+    #     view

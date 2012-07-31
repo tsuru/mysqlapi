@@ -20,24 +20,25 @@ def _get_service_host(dict):
     return host
 
 
-@require_http_methods(["POST"])
-def create_user(request, name):
-    if not "hostname" in request.POST:
-        return HttpResponse("Hostname is missing", status=500)
-    hostname = request.POST.get("hostname", None)
-    if not hostname:
-        return HttpResponse("Hostname is empty", status=500)
-    host = _get_service_host(request.POST)
-    db = DatabaseManager(name, host)
-    try:
-        username, password = db.create_user(name, hostname)
-    except Exception, e:
-        return HttpResponse(e[1], status=500)
-    config = {
-        "MYSQL_USER": username,
-        "MYSQL_PASSWORD": password,
-    }
-    return HttpResponse(simplejson.dumps(config), status=201)
+class CreateUser(View):
+
+    def post(self, request, name, *args, **kwargs):
+        if not "hostname" in request.POST:
+            return HttpResponse("Hostname is missing", status=500)
+        hostname = request.POST.get("hostname", None)
+        if not hostname:
+            return HttpResponse("Hostname is empty", status=500)
+        host = _get_service_host(request.POST)
+        db = DatabaseManager(name, host)
+        try:
+            username, password = db.create_user(name, hostname)
+        except Exception, e:
+            return HttpResponse(e[1], status=500)
+        config = {
+            "MYSQL_USER": username,
+            "MYSQL_PASSWORD": password,
+        }
+        return HttpResponse(simplejson.dumps(config), status=201)
 
 
 class CreateDatabase(View):
@@ -101,18 +102,23 @@ class CreateUserOrDropDatabase(View):
         return create_user(request, name)
 
     def delete(self, request, name, *args, **kwargs):
-        return drop_database(request, name)
+        return DropDatabase.as_view()(request, name)
 
 
-@require_http_methods(["DELETE"])
-def drop_database(request, name):
-    host = _get_service_host(request.GET)
-    db = DatabaseManager(name, host)
-    try:
-        db.drop_database()
-    except Exception, e:
-        return HttpResponse(e[1], status=500)
-    return HttpResponse("", status=200)
+class DropDatabase(View):
+
+    def __init__(self, *args, **kwargs):
+        super(DropDatabase, self).__init__(*args, **kwargs)
+        self._ec2_conn = None
+
+    def delete(self, request, name, *args, **kwargs):
+        host = _get_service_host(request.GET)
+        db = DatabaseManager(name, host)
+        try:
+            db.drop_database()
+        except Exception, e:
+            return HttpResponse(e[1], status=500)
+        return HttpResponse("", status=200)
 
 
 @require_http_methods(["GET"])
