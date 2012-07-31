@@ -155,12 +155,14 @@ class CreateDatabaseViewTestCase(TestCase):
         mocker.verify()
 
     def test_create_database_should_run_instance_using_ami_from_settings(self):
-        request = RequestFactory().post("/", {"name": "professor_xavier", "service_host": "127.0.0.1"})
-        fake = mocks.FakeEC2Conn()
-        view = CreateDatabase()
-        view._ec2_conn = fake
-        response = view.post(request)
-        db = DatabaseManager("professor_xavier")
-        db.drop_database()
-        self.assertEqual(201, response.status_code, response.content)
-        self.assertIn("instance with ami %s and key %s and groups default" % (settings.EC2_AMI, settings.EC2_KEY_NAME), fake.instances)
+        try:
+            request = RequestFactory().post("/", {"name": "professor_xavier", "service_host": "127.0.0.1"})
+            fake = mocks.FakeEC2Conn()
+            view = CreateDatabase()
+            view._ec2_conn = fake
+            response = view.post(request)
+            self.assertEqual(201, response.status_code, response.content)
+            self.assertIn("instance with ami %s and key %s and groups default" % (settings.EC2_AMI, settings.EC2_KEY_NAME), fake.instances)
+        finally:
+            db = DatabaseManager("professor_xavier")
+            db.drop_database()
