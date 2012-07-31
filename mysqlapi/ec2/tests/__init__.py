@@ -34,18 +34,18 @@ class EC2ClientTestCase(unittest.TestCase):
         self.assertIsInstance(conn, mocks.FakeEC2Conn)
         mocker.verify()
 
-    def test_run_instance_creates_instance_with_data_from_settings_and_save_it_in_the_database(self):
+    def test_run_creates_instance_with_data_from_settings_and_save_it_in_the_database(self):
         instance = Instance(name="professor_xavier")
         client = ec2.Client()
         client._ec2_conn = mocks.FakeEC2Conn()
-        ran = client.run_instance(instance)
+        ran = client.run(instance)
         self.assertTrue(ran)
         instance = Instance.objects.get(instance_id="i-00000302", name="professor_xavier")
         self.assertIsNotNone(instance.pk)
 
-    def test_run_instance_returns_False_and_does_not_save_the_instance_in_the_database_if_it_fails_to_boot(self):
+    def test_run_returns_False_and_does_not_save_the_instance_in_the_database_if_it_fails_to_boot(self):
         instance = Instance(name="far_cry")
         client = ec2.Client()
         client._ec2_conn = mocks.FailingEC2Conn()
-        ran = client.run_instance(instance)
+        ran = client.run(instance)
         self.assertFalse(ran)

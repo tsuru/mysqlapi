@@ -23,7 +23,7 @@ class Client(object):
             )
         return self._ec2_conn
 
-    def run_instance(self, instance):
+    def run(self, instance):
         try:
             reservation = self.ec2_conn.run_instances(
                 settings.EC2_AMI,
