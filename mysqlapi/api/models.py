@@ -75,5 +75,13 @@ class DatabaseManager(object):
 
 
 class Instance(models.Model):
+    STATE_CHOICES = (
+        ("pending", "pending"),
+        ("running", "running"),
+        ("error", "error"),
+    )
+
     name = models.CharField(max_length=100)
     instance_id = models.CharField(max_length=100)
+    state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
+    host = models.CharField(max_length=50)

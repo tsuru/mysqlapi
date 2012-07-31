@@ -10,7 +10,7 @@ from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
-from mysqlapi.api.models import DatabaseManager
+from mysqlapi.api.models import DatabaseManager, Instance
 
 
 def _get_service_host(dict):
@@ -66,15 +66,16 @@ class CreateDatabase(View):
         name = request.POST.get("name", None)
         if not name:
             return HttpResponse("App name is empty", status=500)
+        reservation = self.ec2_conn.run_instances(
+            settings.EC2_AMI,
+            key_name=settings.EC2_KEY_NAME,
+            security_groups=["default"],
+        )
+        Instance.objects.create(instance_id=reservation.instances[0].id, name=name)
         host = _get_service_host(request.POST)
         db = DatabaseManager(name, host)
         try:
             db.create_database()
-            self.ec2_conn.run_instances(
-                settings.EC2_AMI,
-                key_name=settings.EC2_KEY_NAME,
-                security_groups=["default"],
-            )
         except Exception, e:
             return HttpResponse(e[1], status=500)
         config = {
