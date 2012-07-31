@@ -1,0 +1,4 @@
+EC2_URL = ''
+EC2_ACCESS_KEY = ''
+EC2_SECRET_KEY = ''
+AMI = ''
