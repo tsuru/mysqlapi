@@ -62,3 +62,11 @@ class InstanceTestCase(TestCase):
     def test_host_should_have_at_most_50_characters(self):
         field = Instance._meta.get_field_by_name("host")[0]
         self.assertEqual(50, field.max_length)
+
+    def test_host_should_accept_empty_values(self):
+        field = Instance._meta.get_field_by_name("host")[0]
+        self.assertTrue(field.blank)
+
+    def test_host_should_accept_null_values(self):
+        field = Instance._meta.get_field_by_name("host")[0]
+        self.assertTrue(field.null)

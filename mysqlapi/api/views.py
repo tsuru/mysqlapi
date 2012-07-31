@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import subprocess
 
-import boto
-from boto.ec2.regioninfo import RegionInfo
-
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
+from mysqlapi import ec2
 from mysqlapi.api.models import DatabaseManager, Instance
 
 
@@ -45,20 +43,7 @@ class CreateDatabase(View):
 
     def __init__(self, *args, **kwargs):
         super(CreateDatabase, self).__init__(*args, **kwargs)
-        self._ec2_conn = None
-
-    @property
-    def ec2_conn(self):
-        if not self._ec2_conn:
-            self._ec2_conn = boto.connect_ec2(
-                aws_access_key_id=settings.EC2_ACCESS_KEY,
-                aws_secret_access_key=settings.EC2_SECRET_KEY,
-                region=RegionInfo(endpoint=settings.EC2_ENDPOINT),
-                is_secure=False,
-                port=settings.EC2_PORT,
-                path=settings.EC2_PATH,
-            )
-        return self._ec2_conn
+        self._client = ec2.Client()
 
     def post(self, request):
         if not "name" in request.POST:
@@ -66,12 +51,8 @@ class CreateDatabase(View):
         name = request.POST.get("name", None)
         if not name:
             return HttpResponse("App name is empty", status=500)
-        reservation = self.ec2_conn.run_instances(
-            settings.EC2_AMI,
-            key_name=settings.EC2_KEY_NAME,
-            security_groups=["default"],
-        )
-        Instance.objects.create(instance_id=reservation.instances[0].id, name=name)
+        instance = Instance(name=name)
+        self._client.run(instance)
         host = _get_service_host(request.POST)
         db = DatabaseManager(name, host)
         try:
