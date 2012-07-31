@@ -51,3 +51,14 @@ class InstanceTestCase(TestCase):
         )
         field = Instance._meta.get_field_by_name("state")[0]
         self.assertEqual(expected, field.choices)
+
+    def test_instance_should_have_a_host(self):
+        self.assertIn("host", Instance._meta.get_all_field_names())
+
+    def test_host_should_be_CharField(self):
+        field = Instance._meta.get_field_by_name("host")[0]
+        self.assertIsInstance(field, CharField)
+
+    def test_host_should_have_at_most_50_characters(self):
+        field = Instance._meta.get_field_by_name("host")[0]
+        self.assertEqual(50, field.max_length)
