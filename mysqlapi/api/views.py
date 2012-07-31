@@ -4,6 +4,7 @@ import subprocess
 from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
+from django.views.generic.base import View
 
 from mysqlapi.api.models import DatabaseManager
 
@@ -43,25 +44,26 @@ def create_user(request, name):
     return HttpResponse(simplejson.dumps(config), status=201)
 
 
-@require_http_methods(["POST"])
-def create_database(request):
-    if not "name" in request.POST:
-        return HttpResponse("App name is missing", status=500)
-    name = request.POST.get("name", None)
-    if not name:
-        return HttpResponse("App name is empty", status=500)
-    host = _get_service_host(request.POST)
-    db = DatabaseManager(name, host)
-    try:
-        db.create_database()
-    except Exception, e:
-        return HttpResponse(e[1], status=500)
-    config = {
-        "MYSQL_DATABASE_NAME": db.name,
-        "MYSQL_HOST": db.host,
-        "MYSQL_PORT": db.port,
-    }
-    return HttpResponse(simplejson.dumps(config), status=201)
+class CreateDatabase(View):
+
+    def post(self, request):
+        if not "name" in request.POST:
+            return HttpResponse("App name is missing", status=500)
+        name = request.POST.get("name", None)
+        if not name:
+            return HttpResponse("App name is empty", status=500)
+        host = _get_service_host(request.POST)
+        db = DatabaseManager(name, host)
+        try:
+            db.create_database()
+        except Exception, e:
+            return HttpResponse(e[1], status=500)
+        config = {
+            "MYSQL_DATABASE_NAME": db.name,
+            "MYSQL_HOST": db.host,
+            "MYSQL_PORT": db.port,
+        }
+        return HttpResponse(simplejson.dumps(config), status=201)
 
 
 @require_http_methods(["DELETE"])

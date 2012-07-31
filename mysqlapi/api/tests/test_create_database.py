@@ -7,7 +7,7 @@ from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import DatabaseManager
-from mysqlapi.api.views import create_database
+from mysqlapi.api.views import CreateDatabase
 
 
 class CreateDatabaseViewTestCase(TestCase):
@@ -24,13 +24,15 @@ class CreateDatabaseViewTestCase(TestCase):
 
     def test_create_database_should_returns_500_when_name_is_missing(self):
         request = RequestFactory().post("/", {})
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.post(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("App name is missing", response.content)
 
     def test_create_database_should_returns_500_when_name_is_blank(self):
         request = RequestFactory().post("/", {"name": ""})
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.post(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("App name is empty", response.content)
 
@@ -38,27 +40,30 @@ class CreateDatabaseViewTestCase(TestCase):
         db = DatabaseManager("ciclops")
         db.create_database()
         request = RequestFactory().post("/", {"name": "ciclops"})
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.post(request)
         self.assertEqual(500, response.status_code)
         self.assertEqual("Can't create database 'ciclops'; database exists", response.content)
         db.drop_database()
 
     def test_create_database_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.dispatch(request)
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().put("/")
-        response = create_database(request)
+        response = view.dispatch(request)
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().delete("/")
-        response = create_database(request)
+        response = view.dispatch(request)
         self.assertEqual(405, response.status_code)
 
     def test_create_database(self):
         request = RequestFactory().post("/", {"name": "ciclops"})
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.post(request)
         self.assertEqual(201, response.status_code)
         content = json.loads(response.content)
         expected = {
@@ -78,7 +83,8 @@ class CreateDatabaseViewTestCase(TestCase):
     def test_create_database_returns_the_host_from_environment_variable(self):
         os.environ["MYSQLAPI_DATABASE_HOST"] = "10.0.1.100"
         request = RequestFactory().post("/", {"name": "plains_of_dawn"})
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.post(request)
         self.assertEqual(201, response.status_code)
         content = json.loads(response.content)
         expected = {
@@ -95,7 +101,8 @@ class CreateDatabaseViewTestCase(TestCase):
 
     def test_create_database_in_a_custom_service_host(self):
         request = RequestFactory().post("/", {"name": "ciclops", "service_host": "127.0.0.1"})
-        response = create_database(request)
+        view = CreateDatabase()
+        response = view.post(request)
         self.assertEqual(201, response.status_code)
         content = json.loads(response.content)
         expected = {
