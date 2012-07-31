@@ -27,3 +27,27 @@ class InstanceTestCase(TestCase):
     def test_instance_id_should_have_at_most_100_characters(self):
         field = Instance._meta.get_field_by_name("instance_id")[0]
         self.assertEqual(100, field.max_length)
+
+    def test_instance_should_have_an_state(self):
+        self.assertIn("state", Instance._meta.get_all_field_names())
+
+    def test_state_should_be_CharField(self):
+        field = Instance._meta.get_field_by_name("state")[0]
+        self.assertIsInstance(field, CharField)
+
+    def test_state_should_have_at_most_50_characters(self):
+        field = Instance._meta.get_field_by_name("state")[0]
+        self.assertEqual(50, field.max_length)
+
+    def test_state_should_be_pending_by_default(self):
+        field = Instance._meta.get_field_by_name("state")[0]
+        self.assertEqual("pending", field.default)
+
+    def test_state_should_have_choices(self):
+        expected = (
+            ("pending", "pending"),
+            ("running", "running"),
+            ("error", "error"),
+        )
+        field = Instance._meta.get_field_by_name("state")[0]
+        self.assertEqual(expected, field.choices)
