@@ -139,6 +139,14 @@ LOGGING = {
     }
 }
 
+EC2_ENDPOINT = 'your-host'
+EC2_PORT = 6667
+EC2_PATH = '/euca/Claudi'
+EC2_ACCESS_KEY = 'access-key'
+EC2_SECRET_KEY = 'very-secret'
+EC2_AMI = 'ami-000000ff'
+EC2_KEY_NAME = 'your-key-name'
+
 try:
     from settings_local import *
 except ImportError:
