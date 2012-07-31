@@ -3,6 +3,8 @@ import os
 import subprocess
 import uuid
 
+from django.db import models
+
 from mysqlapi.api.database import Connection
 
 
@@ -70,3 +72,8 @@ class DatabaseManager(object):
         if self._host == "localhost":
             return os.environ.get("MYSQLAPI_DATABASE_HOST", "localhost")
         return self._host
+
+
+class Instance(models.Model):
+    name = models.CharField(max_length=100)
+    instance_id = models.CharField(max_length=100)
