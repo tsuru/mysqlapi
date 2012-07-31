@@ -20,14 +20,6 @@ def _get_service_host(dict):
     return host
 
 
-@require_http_methods(["POST", "DELETE"])
-def create_user_or_drop_database(request, name):
-    if request.method == "POST":
-        return create_user(request, name)
-    if request.method == "DELETE":
-        return drop_database(request, name)
-
-
 @require_http_methods(["POST"])
 def create_user(request, name):
     if not "hostname" in request.POST:
@@ -101,6 +93,15 @@ def drop_user(request, name, hostname):
     except Exception, e:
         return HttpResponse(e[1], status=500)
     return HttpResponse("", status=200)
+
+
+class CreateUserOrDropDatabase(View):
+
+    def post(self, request, name, *args, **kwargs):
+        return create_user(request, name)
+
+    def delete(self, request, name, *args, **kwargs):
+        return drop_database(request, name)
 
 
 @require_http_methods(["DELETE"])
