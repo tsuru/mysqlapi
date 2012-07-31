@@ -100,7 +100,7 @@ def drop_user(request, name, hostname):
 class CreateUserOrDropDatabase(View):
 
     def post(self, request, name, *args, **kwargs):
-        return create_user(request, name)
+        return CreateUser.as_view()(request, name)
 
     def delete(self, request, name, *args, **kwargs):
         return DropDatabase.as_view()(request, name)
@@ -111,6 +111,19 @@ class DropDatabase(View):
     def __init__(self, *args, **kwargs):
         super(DropDatabase, self).__init__(*args, **kwargs)
         self._ec2_conn = None
+
+    @property
+    def ec2_conn(self):
+        if not self._ec2_conn:
+            self._ec2_conn = boto.connect_ec2(
+                aws_access_key_id=settings.EC2_ACCESS_KEY,
+                aws_secret_access_key=settings.EC2_SECRET_KEY,
+                region=RegionInfo(endpoint=settings.EC2_ENDPOINT),
+                is_secure=False,
+                port=settings.EC2_PORT,
+                path=settings.EC2_PATH,
+            )
+        return self._ec2_conn
 
     def delete(self, request, name, *args, **kwargs):
         host = _get_service_host(request.GET)

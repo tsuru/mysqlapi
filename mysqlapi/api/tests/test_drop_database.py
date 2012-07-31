@@ -5,7 +5,7 @@ from django.test.client import RequestFactory
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import DatabaseManager
 from mysqlapi.api.tests import mocks
-from mysqlapi.api.views import DropDatabase
+from mysqlapi.api.views import DropDatabase, CreateDatabase
 
 
 class DropDatabaseViewTestCase(TestCase):
@@ -63,6 +63,18 @@ class DropDatabaseViewTestCase(TestCase):
         row = self.cursor.fetchone()
         self.assertFalse(row)
 
-    # def test_should_remove_ec2_instance(self):
-    #     fake = mocks.FakeEC2Conn()
-    #     view
+    def test_should_remove_ec2_instance(self):
+        fake = mocks.FakeEC2Conn()
+        request = RequestFactory().post("/", {"name": "ciclops", "service_host": "127.0.0.1"})
+        view = CreateDatabase()
+        view._ec2_conn = fake
+        view.post(request)
+
+        view = DropDatabase()
+        view._ec2_conn = fake
+
+        request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
+        resp = view.delete(request, "ciclops")
+
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual([], fake.instances)
