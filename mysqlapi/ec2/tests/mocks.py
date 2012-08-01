@@ -6,6 +6,7 @@ class FakeEC2Conn(object):
 
     def __init__(self, time_to_fail=1, *args, **kwargs):
         self.instances = []
+        self.terminated = []
         self.args = args
         self.kwargs = kwargs
         self.time_to_fail = time_to_fail
@@ -22,8 +23,20 @@ class FakeEC2Conn(object):
         reservation.instances = [instance]
         return reservation
 
+    def terminate_instances(self, instance_ids):
+        self.terminated.extend(instance_ids)
+        instances = []
+        for instance_id in instance_ids:
+            instance = Instance()
+            instance.id = instance_id
+            instances.append(instance)
+        return instances
+
 
 class FailingEC2Conn(FakeEC2Conn):
 
     def run_instances(self, *args, **kwargs):
         raise EC2ResponseError(status=500, reason="Failed")
+
+    def terminate_instances(self, instance_ids):
+        return []

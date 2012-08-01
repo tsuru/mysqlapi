@@ -42,6 +42,7 @@ class EC2ClientTestCase(unittest.TestCase):
         self.assertTrue(ran)
         instance = Instance.objects.get(instance_id="i-00000302", name="professor_xavier")
         self.assertIsNotNone(instance.pk)
+        instance.delete()
 
     def test_run_returns_False_and_does_not_save_the_instance_in_the_database_if_it_fails_to_boot(self):
         instance = Instance(name="far_cry")
@@ -49,3 +50,39 @@ class EC2ClientTestCase(unittest.TestCase):
         client._ec2_conn = mocks.FailingEC2Conn()
         ran = client.run(instance)
         self.assertFalse(ran)
+
+    def test_terminate_removes_instance_from_database(self):
+        instance = Instance(name="professor_xavier")
+        client = ec2.Client()
+        client._ec2_conn = mocks.FakeEC2Conn()
+        ran = client.run(instance)
+        self.assertTrue(ran)
+
+        client.terminate(instance)
+        with self.assertRaises(Instance.DoesNotExist):
+            Instance.objects.get(name="professor_xavier")
+
+    def test_terminate_removes_ec2_instance(self):
+        instance = Instance(name="professor_xavier")
+        client = ec2.Client()
+        client._ec2_conn = mocks.FakeEC2Conn()
+        ran = client.run(instance)
+        self.assertTrue(ran)
+
+        ran = client.terminate(instance)
+        self.assertEqual(["i-00000302"], client._ec2_conn.terminated)
+        self.assertTrue(ran)
+
+    def test_terminate_returns_false_and_doesnt_removes_from_db_when_cannot_remove_ec2_instance(self):
+        instance = Instance(name="professor_xavier")
+        client = ec2.Client()
+        client._ec2_conn = mocks.FakeEC2Conn()
+
+        ran = client.run(instance)
+        self.assertTrue(ran)
+
+        client._ec2_conn = mocks.FailingEC2Conn()
+        ran = client.terminate(instance)
+        self.assertFalse(ran)
+        instance = Instance.objects.get(name="professor_xavier")
+        self.assertIsNotNone(instance.pk)

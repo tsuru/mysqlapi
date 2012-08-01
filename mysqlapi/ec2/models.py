@@ -36,3 +36,11 @@ class Client(object):
         except EC2ResponseError:
             # TODO (fsouza): skip this silenciator pattern, log the error! ;)
             return False
+
+    def terminate(self, instance):
+        terminated = self.ec2_conn.terminate_instances(
+                                instance_ids=[instance.instance_id])
+        if instance.instance_id in [inst.id for inst in terminated]:
+            instance.delete()
+            return True
+        return False
