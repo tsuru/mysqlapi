@@ -112,7 +112,7 @@ class DatabaseCreator(threading.Thread):
 def create_database(instance):
     ec2_client = ec2.Client()
     if not ec2_client.run(instance):
-        raise DatabaseCreationException()
+        raise DatabaseCreationException("Failed to create EC2 instance.")
     t = DatabaseCreator(ec2_client, instance)
     t.start()
     return t

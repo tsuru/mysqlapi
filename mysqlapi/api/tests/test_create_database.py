@@ -180,6 +180,7 @@ class CreateDatabaseViewTestCase(TestCase):
         run(instance)
         mocker.result(False)
         mocker.replay()
-        with self.assertRaises(DatabaseCreationException):
+        with self.assertRaises(DatabaseCreationException) as e:
             create_database(instance)
+        self.assertEqual(u"Failed to create EC2 instance.", e.exception.message)
         mocker.verify()
