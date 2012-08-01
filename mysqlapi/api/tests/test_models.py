@@ -70,3 +70,26 @@ class InstanceTestCase(TestCase):
     def test_host_should_accept_null_values(self):
         field = Instance._meta.get_field_by_name("host")[0]
         self.assertTrue(field.null)
+
+    def test_instance_should_have_reason_of_failure(self):
+        self.assertIn("reason", Instance._meta.get_all_field_names())
+
+    def test_reason_should_be_CharField(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertIsInstance(field, CharField)
+
+    def test_reason_should_have_at_most_1000_characters(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertEqual(1000, field.max_length)
+
+    def test_reason_should_accept_null_values(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertTrue(field.null)
+
+    def test_reason_should_accept_blank(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertTrue(field.blank)
+
+    def test_reason_should_have_None_as_default_value(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertEqual(None, field.default)
