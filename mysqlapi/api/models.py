@@ -6,7 +6,6 @@ import uuid
 
 from django.db import models
 
-from mysqlapi import ec2
 from mysqlapi.api.database import Connection
 
 
