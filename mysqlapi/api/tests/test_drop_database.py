@@ -4,7 +4,6 @@ from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import DatabaseManager
-from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import DropDatabase
 
 
