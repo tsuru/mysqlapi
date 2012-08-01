@@ -3,12 +3,13 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import DatabaseManager
+from mysqlapi.api.models import DatabaseManager, Instance
 from mysqlapi.api.tests import mocks
-from mysqlapi.api.views import DropDatabase, CreateDatabase
+from mysqlapi.api.views import DropDatabase
 
 
 class DropDatabaseViewTestCase(TestCase):
+
 
     @classmethod
     def setUpClass(cls):
@@ -19,6 +20,11 @@ class DropDatabaseViewTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.conn.close()
+
+    def create_ciclops(self):
+        Instance.objects.create(name="ciclops")
+        db = DatabaseManager("ciclops", "127.0.0.1")
+        db.create_database()
 
     def test_drop_should_returns_500_and_error_msg_in_body(self):
         request = RequestFactory().delete("/")
@@ -40,11 +46,12 @@ class DropDatabaseViewTestCase(TestCase):
         self.assertEqual(405, response.status_code)
 
     def test_drop(self):
-        db = DatabaseManager("ciclops")
-        db.create_database()
-
+        self.create_ciclops()
         request = RequestFactory().delete("/ciclops")
-        response = DropDatabase().delete(request, "ciclops")
+        self.fake = mocks.FakeEC2Client()
+        view = DropDatabase()
+        view._client = self.fake
+        response = view.delete(request, "ciclops")
         self.assertEqual(200, response.status_code)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
@@ -52,11 +59,12 @@ class DropDatabaseViewTestCase(TestCase):
         self.assertFalse(row)
 
     def test_drop_from_a_custom_service_host(self):
-        db = DatabaseManager("ciclops", "127.0.0.1")
-        db.create_database()
-
+        self.create_ciclops()
         request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
-        response = DropDatabase().delete(request, "ciclops")
+        self.fake = mocks.FakeEC2Client()
+        view = DropDatabase()
+        view._client = self.fake
+        response = view.delete(request, "ciclops")
         self.assertEqual(200, response.status_code)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
@@ -64,17 +72,13 @@ class DropDatabaseViewTestCase(TestCase):
         self.assertFalse(row)
 
     def test_should_remove_ec2_instance(self):
-        fake = mocks.FakeEC2Conn()
-        request = RequestFactory().post("/", {"name": "ciclops", "service_host": "127.0.0.1"})
-        view = CreateDatabase()
-        view._ec2_conn = fake
-        view.post(request)
-
+        self.create_ciclops()
+        self.fake = mocks.FakeEC2Client()
         view = DropDatabase()
-        view._ec2_conn = fake
+        view._client = self.fake
 
         request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
         resp = view.delete(request, "ciclops")
 
         self.assertEqual(200, resp.status_code)
-        self.assertEqual([], fake.instances)
+        self.assertEqual(["terminate instance ciclops"], self.fake.actions)

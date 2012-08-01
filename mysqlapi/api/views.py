@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import subprocess
 
-from django.conf import settings
 from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
+from django.shortcuts import get_object_or_404
 
 from mysqlapi import ec2
 from mysqlapi.api.models import DatabaseManager, Instance
@@ -91,22 +91,14 @@ class DropDatabase(View):
 
     def __init__(self, *args, **kwargs):
         super(DropDatabase, self).__init__(*args, **kwargs)
-        self._ec2_conn = None
-
-    @property
-    def ec2_conn(self):
-        if not self._ec2_conn:
-            self._ec2_conn = boto.connect_ec2(
-                aws_access_key_id=settings.EC2_ACCESS_KEY,
-                aws_secret_access_key=settings.EC2_SECRET_KEY,
-                region=RegionInfo(endpoint=settings.EC2_ENDPOINT),
-                is_secure=False,
-                port=settings.EC2_PORT,
-                path=settings.EC2_PATH,
-            )
-        return self._ec2_conn
+        self._client = ec2.Client()
 
     def delete(self, request, name, *args, **kwargs):
+        try:
+            instance = Instance.objects.get(name=name)
+        except Instance.DoesNotExist:
+            return HttpResponse("Can't drop database 'doesnotexists'; database doesn't exist", status=500)
+        self._client.terminate(instance)
         host = _get_service_host(request.GET)
         db = DatabaseManager(name, host)
         try:
