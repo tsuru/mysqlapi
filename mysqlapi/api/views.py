@@ -5,9 +5,8 @@ from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
-from django.shortcuts import get_object_or_404
 
-from mysqlapi import ec2
+from crane_ec2 import ec2
 from mysqlapi.api.models import create_database, DatabaseManager, Instance
 
 
