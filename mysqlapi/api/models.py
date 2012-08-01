@@ -1,10 +1,12 @@
 import hashlib
 import os
 import subprocess
+import threading
 import uuid
 
 from django.db import models
 
+from mysqlapi import ec2
 from mysqlapi.api.database import Connection
 
 
@@ -85,3 +87,25 @@ class Instance(models.Model):
     ec2_id = models.CharField(max_length=100)
     state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
     host = models.CharField(max_length=50, null=True, blank=True)
+
+
+class DatabaseCreator(threading.Thread):
+
+    def __init__(self, instance, user="root", password=""):
+        self.instance = instance
+        self.ec2_client = ec2.Client()
+        self.user = user
+        self.password = password
+        super(DatabaseCreator, self).__init__()
+
+    def run(self):
+        while not self.ec2_client.get(self.instance):
+            pass
+        db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
+        db.create_database()
+
+
+def create_database(instance):
+    t = DatabaseCreator(instance)
+    t.start()
+    return t
