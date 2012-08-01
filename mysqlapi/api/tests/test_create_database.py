@@ -4,7 +4,6 @@ import os
 
 from django.test import TestCase
 from django.test.client import RequestFactory
-from mocker import Mocker
 
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance
@@ -145,24 +144,12 @@ class CreateDatabaseViewTestCase(TestCase):
         instance = Instance.objects.create(
             ec2_id="i-00009",
             name="der_trommler",
+            host="127.0.0.1",
+            state="running",
         )
-        mocker = Mocker()
-        run = mocker.replace("mysqlapi.ec2.Client.run")
-        run(instance)
-        mocker.result(True)
-        get = mocker.replace("mysqlapi.ec2.Client.get")
-        get(instance)
-        mocker.result(False)
-        get(instance)
-        mocker.result(False)
-        get(instance)
-        mocker.result(True)
-        instance.host = "127.0.0.1"
-        instance.state = "running"
-        instance.save()
-        mocker.replay()
+        ec2_client = mocks.MultipleFailureEC2Client(times=2)
         try:
-            t = create_database(instance)
+            t = create_database(instance, ec2_client)
             t.join()
             self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'der_trommler'")
             row = self.cursor.fetchone()
@@ -171,16 +158,11 @@ class CreateDatabaseViewTestCase(TestCase):
         finally:
             instance.delete()
             self.cursor.execute("DROP DATABASE IF EXISTS der_trommler")
-        mocker.verify()
 
     def test_create_database_function_raises_exception_if_instance_fail_to_boot(self):
         instance = Instance(name="seven_cities")
-        mocker = Mocker()
-        run = mocker.replace("mysqlapi.ec2.Client.run")
-        run(instance)
-        mocker.result(False)
-        mocker.replay()
+        ec2_client = mocks.FakeEC2Client()
+        ec2_client.run = lambda instance: False
         with self.assertRaises(DatabaseCreationException) as e:
-            create_database(instance)
-        self.assertEqual(u"Failed to create EC2 instance.", e.exception.message)
-        mocker.verify()
+            create_database(instance, ec2_client)
+        self.assertEqual(u"Failed to create EC2 instance.", e.exception[1])
