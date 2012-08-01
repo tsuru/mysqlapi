@@ -17,15 +17,15 @@ class InstanceTestCase(TestCase):
         field = Instance._meta.get_field_by_name("name")[0]
         self.assertEqual(100, field.max_length)
 
-    def test_instance_should_have_an_instance_id(self):
-        self.assertIn("instance_id", Instance._meta.get_all_field_names())
+    def test_instance_should_have_an_ec2_id(self):
+        self.assertIn("ec2_id", Instance._meta.get_all_field_names())
 
-    def test_instance_id_should_be_CharField(self):
-        field = Instance._meta.get_field_by_name("instance_id")[0]
+    def test_ec2_id_should_be_CharField(self):
+        field = Instance._meta.get_field_by_name("ec2_id")[0]
         self.assertIsInstance(field, CharField)
 
-    def test_instance_id_should_have_at_most_100_characters(self):
-        field = Instance._meta.get_field_by_name("instance_id")[0]
+    def test_ec2_id_should_have_at_most_100_characters(self):
+        field = Instance._meta.get_field_by_name("ec2_id")[0]
         self.assertEqual(100, field.max_length)
 
     def test_instance_should_have_an_state(self):
@@ -70,3 +70,26 @@ class InstanceTestCase(TestCase):
     def test_host_should_accept_null_values(self):
         field = Instance._meta.get_field_by_name("host")[0]
         self.assertTrue(field.null)
+
+    def test_instance_should_have_reason_of_failure(self):
+        self.assertIn("reason", Instance._meta.get_all_field_names())
+
+    def test_reason_should_be_CharField(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertIsInstance(field, CharField)
+
+    def test_reason_should_have_at_most_1000_characters(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertEqual(1000, field.max_length)
+
+    def test_reason_should_accept_null_values(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertTrue(field.null)
+
+    def test_reason_should_accept_blank(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertTrue(field.blank)
+
+    def test_reason_should_have_None_as_default_value(self):
+        field = Instance._meta.get_field_by_name("reason")[0]
+        self.assertEqual(None, field.default)

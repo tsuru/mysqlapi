@@ -8,7 +8,7 @@ from django.views.generic.base import View
 from django.shortcuts import get_object_or_404
 
 from mysqlapi import ec2
-from mysqlapi.api.models import DatabaseManager, Instance
+from mysqlapi.api.models import create_database, DatabaseManager, Instance
 
 
 def _get_service_host(dict):
@@ -52,19 +52,11 @@ class CreateDatabase(View):
         if not name:
             return HttpResponse("App name is empty", status=500)
         instance = Instance(name=name)
-        self._client.run(instance)
-        host = _get_service_host(request.POST)
-        db = DatabaseManager(name, host)
         try:
-            db.create_database()
+            create_database(instance, self._client)
         except Exception, e:
             return HttpResponse(e[1], status=500)
-        config = {
-            "MYSQL_DATABASE_NAME": db.name,
-            "MYSQL_HOST": db.host,
-            "MYSQL_PORT": db.port,
-        }
-        return HttpResponse(simplejson.dumps(config), status=201)
+        return HttpResponse("ok", status=201)
 
 
 @require_http_methods(["DELETE"])

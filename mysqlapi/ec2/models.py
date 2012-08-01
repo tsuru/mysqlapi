@@ -30,7 +30,7 @@ class Client(object):
                 key_name=settings.EC2_KEY_NAME,
                 security_groups=["default"],
             )
-            instance.instance_id = reservation.instances[0].id
+            instance.ec2_id = reservation.instances[0].id
             instance.save()
             return True
         except EC2ResponseError:
@@ -39,8 +39,18 @@ class Client(object):
 
     def terminate(self, instance):
         terminated = self.ec2_conn.terminate_instances(
-                                instance_ids=[instance.instance_id])
-        if instance.instance_id in [inst.id for inst in terminated]:
+                                instance_ids=[instance.ec2_id])
+        if instance.ec2_id in [inst.id for inst in terminated]:
             instance.delete()
+            return True
+        return False
+
+    def get(self, instance):
+        reservation = self.ec2_conn.get_all_instances(instance.ec2_id)
+        ec2_instance = reservation[0].instances[0]
+        if ec2_instance.ip_address != ec2_instance.private_ip_address:
+            instance.state = ec2_instance.state
+            instance.host = ec2_instance.ip_address
+            instance.save()
             return True
         return False
