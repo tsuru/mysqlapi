@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import subprocess
 
-from django.conf import settings
 from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
 from mysqlapi import ec2
-from mysqlapi.api.models import DatabaseManager, Instance
+from mysqlapi.api.models import create_database, DatabaseManager, Instance
 
 
 def _get_service_host(dict):
@@ -52,19 +51,11 @@ class CreateDatabase(View):
         if not name:
             return HttpResponse("App name is empty", status=500)
         instance = Instance(name=name)
-        self._client.run(instance)
-        host = _get_service_host(request.POST)
-        db = DatabaseManager(name, host)
         try:
-            db.create_database()
+            create_database(instance, self._client)
         except Exception, e:
             return HttpResponse(e[1], status=500)
-        config = {
-            "MYSQL_DATABASE_NAME": db.name,
-            "MYSQL_HOST": db.host,
-            "MYSQL_PORT": db.port,
-        }
-        return HttpResponse(simplejson.dumps(config), status=201)
+        return HttpResponse("ok", status=201)
 
 
 @require_http_methods(["DELETE"])
