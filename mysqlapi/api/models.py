@@ -22,6 +22,10 @@ def generate_user(username):
     return _username
 
 
+class DatabaseCreationException(BaseException):
+    pass
+
+
 class DatabaseManager(object):
 
     def __init__(self, name, host="localhost", user="root", password=""):
@@ -91,9 +95,9 @@ class Instance(models.Model):
 
 class DatabaseCreator(threading.Thread):
 
-    def __init__(self, instance, user="root", password=""):
+    def __init__(self, ec2_client, instance, user="root", password=""):
         self.instance = instance
-        self.ec2_client = ec2.Client()
+        self.ec2_client = ec2_client
         self.user = user
         self.password = password
         super(DatabaseCreator, self).__init__()
@@ -106,6 +110,9 @@ class DatabaseCreator(threading.Thread):
 
 
 def create_database(instance):
-    t = DatabaseCreator(instance)
+    ec2_client = ec2.Client()
+    if not ec2_client.run(instance):
+        raise DatabaseCreationException()
+    t = DatabaseCreator(ec2_client, instance)
     t.start()
     return t

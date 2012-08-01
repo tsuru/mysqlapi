@@ -7,7 +7,7 @@ from django.test.client import RequestFactory
 from mocker import Mocker
 
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import create_database, DatabaseManager, Instance
+from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
@@ -147,6 +147,9 @@ class CreateDatabaseViewTestCase(TestCase):
             name="der_trommler",
         )
         mocker = Mocker()
+        run = mocker.replace("mysqlapi.ec2.Client.run")
+        run(instance)
+        mocker.result(True)
         get = mocker.replace("mysqlapi.ec2.Client.get")
         get(instance)
         mocker.result(False)
@@ -168,4 +171,15 @@ class CreateDatabaseViewTestCase(TestCase):
         finally:
             instance.delete()
             self.cursor.execute("DROP DATABASE IF EXISTS der_trommler")
+        mocker.verify()
+
+    def test_create_database_function_raises_exception_if_instance_fail_to_boot(self):
+        instance = Instance(name="seven_cities")
+        mocker = Mocker()
+        run = mocker.replace("mysqlapi.ec2.Client.run")
+        run(instance)
+        mocker.result(False)
+        mocker.replay()
+        with self.assertRaises(DatabaseCreationException):
+            create_database(instance)
         mocker.verify()
