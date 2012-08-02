@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from mocker import Mocker
 
-from mysqlapi.api.views import healthcheck
+from mysqlapi.api.views import Healthcheck
 
 
 class HealthcheckTestCase(TestCase):
@@ -14,7 +14,7 @@ class HealthcheckTestCase(TestCase):
         mocker.result(True)
         mocker.replay()
         request = RequestFactory().get("/resources/g8mysql/status/")
-        response = healthcheck(request, "g8mysql")
+        response = Healthcheck().get(request, "g8mysql")
         self.assertEqual(204, response.status_code)
         mocker.verify()
 
@@ -25,6 +25,6 @@ class HealthcheckTestCase(TestCase):
         mocker.result(False)
         mocker.replay()
         request = RequestFactory().get("/resources/g8mysql/status/")
-        response = healthcheck(request, "g8mysql")
+        response = Healthcheck().get(request, "g8mysql")
         self.assertEqual(500, response.status_code)
         mocker.verify()

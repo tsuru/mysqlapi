@@ -110,9 +110,10 @@ def export(request, name):
         return HttpResponse(e.output.split(":")[-1].strip(), status=500)
 
 
-@require_http_methods(["GET"])
-def healthcheck(request, name):
-    host = _get_service_host(request.GET)
-    db = DatabaseManager(name, host)
-    status = db.is_up() and 204 or 500
-    return HttpResponse(status=status)
+class Healthcheck(View):
+
+    def get(self, request, name, *args, **kwargs):
+        host = _get_service_host(request.GET)
+        db = DatabaseManager(name, host)
+        status = db.is_up() and 204 or 500
+        return HttpResponse(status=status)
