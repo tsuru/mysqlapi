@@ -6,7 +6,7 @@ from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
-from crane_ec2 import ec2
+import crane_ec2
 from mysqlapi.api.models import create_database, DatabaseManager, Instance
 
 
@@ -42,7 +42,7 @@ class CreateDatabase(View):
 
     def __init__(self, *args, **kwargs):
         super(CreateDatabase, self).__init__(*args, **kwargs)
-        self._client = ec2.Client()
+        self._client = crane_ec2.Client()
 
     def post(self, request):
         if not "name" in request.POST:
@@ -82,7 +82,7 @@ class DropDatabase(View):
 
     def __init__(self, *args, **kwargs):
         super(DropDatabase, self).__init__(*args, **kwargs)
-        self._client = ec2.Client()
+        self._client = crane_ec2.Client()
 
     def delete(self, request, name, *args, **kwargs):
         try:
