@@ -19,6 +19,18 @@ class FakeEC2Client(object):
         return True
 
 
+class FakeEC2ClientPendingInstance(object):
+
+    def __init__(self):
+        self.actions = []
+
+    def get(self, instance):
+        self.actions.append("get instance %s" % instance.name)
+        instance.host = ""
+        instance.state = "pending"
+        return True
+
+
 class MultipleFailureEC2Client(FakeEC2Client):
 
     def __init__(self, times, *args, **kwargs):

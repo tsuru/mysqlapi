@@ -112,8 +112,20 @@ def export(request, name):
 
 class Healthcheck(View):
 
+    def __init__(self, *args, **kwargs):
+        self._client = crane_ec2.Client()
+
     def get(self, request, name, *args, **kwargs):
+        try:
+            instance = Instance.objects.get(name=name)
+        except Instance.DoesNotExist:
+            return HttpResponse("Instance %s not found" % name, status=404)
+
         host = _get_service_host(request.GET)
         db = DatabaseManager(name, host)
-        status = db.is_up() and 204 or 500
+        self._client.get(instance)
+        status = 500
+        if instance.state == "running" and db.is_up():
+            status = 204
+
         return HttpResponse(status=status)
