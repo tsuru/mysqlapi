@@ -105,8 +105,13 @@ class DatabaseCreator(threading.Thread):
     def run(self):
         while not self.ec2_client.get(self.instance):
             pass
-        db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
-        db.create_database()
+        try:
+            db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
+            db.create_database()
+        except Exception as e:
+            self.ec2_client.terminate(self.instance)
+            self.instance.state = "error"
+            self.instance.reason = unicode(e)
         self.instance.save()
 
 
