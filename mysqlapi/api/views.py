@@ -2,6 +2,7 @@
 import subprocess
 
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
@@ -25,8 +26,13 @@ class CreateUser(View):
         hostname = request.POST.get("hostname", None)
         if not hostname:
             return HttpResponse("Hostname is empty", status=500)
-        host = _get_service_host(request.POST)
-        db = DatabaseManager(name, host)
+        try:
+            instance = Instance.objects.get(name=name)
+        except Instance.DoesNotExist:
+            return HttpResponse("Instance not found", status=404)
+        if instance.state != "running":
+            return HttpResponse(u"You can't bind to this instance because it's not running.", status=412)
+        db = DatabaseManager(name, instance.host)
         try:
             username, password = db.create_user(name, hostname)
         except Exception, e:
