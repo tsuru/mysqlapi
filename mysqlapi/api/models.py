@@ -107,11 +107,13 @@ class DatabaseCreator(threading.Thread):
             pass
         db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
         db.create_database()
+        self.instance.save()
 
 
 def create_database(instance, ec2_client):
     if not ec2_client.run(instance):
         raise DatabaseCreationException(instance, "Failed to create EC2 instance.")
+    instance.save()
     t = DatabaseCreator(ec2_client, instance)
     t.start()
     return t

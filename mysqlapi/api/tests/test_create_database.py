@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
+import unittest
 
-from django.test import TestCase
 from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
@@ -10,7 +10,7 @@ from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
 
-class CreateDatabaseViewTestCase(TestCase):
+class CreateDatabaseViewTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -82,7 +82,7 @@ class CreateDatabaseViewTestCase(TestCase):
             self.cursor.execute("DROP DATABASE IF EXISTS bowl")
 
     def test_create_database_function_start_thread_that_creates_the_database_once_the_instance_changes_it_state(self):
-        instance = Instance.objects.create(
+        instance = Instance(
             ec2_id="i-00009",
             name="der_trommler",
             host="127.0.0.1",
@@ -96,9 +96,10 @@ class CreateDatabaseViewTestCase(TestCase):
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
             self.assertEqual("der_trommler", row[0])
+            self.assertIsNotNone(instance.pk)
         finally:
-            instance.delete()
             self.cursor.execute("DROP DATABASE IF EXISTS der_trommler")
+            instance.delete()
 
     def test_create_database_function_raises_exception_if_instance_fail_to_boot(self):
         instance = Instance(name="seven_cities")
