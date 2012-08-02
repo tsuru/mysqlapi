@@ -53,10 +53,11 @@ class DropDatabaseViewTestCase(TestCase):
         view._client = self.fake
         response = view.delete(request, "ciclops")
         self.assertEqual(200, response.status_code)
-
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
+        with self.assertRaises(Instance.DoesNotExist):
+            Instance.objects.get(name="ciclops")
 
     def test_drop_from_a_custom_service_host(self):
         self.create_ciclops()
