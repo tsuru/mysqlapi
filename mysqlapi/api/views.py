@@ -2,7 +2,6 @@
 import subprocess
 
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
@@ -129,9 +128,16 @@ class Healthcheck(View):
 
         host = _get_service_host(request.GET)
         db = DatabaseManager(name, host)
+
+        # if the vm is not up and running, there's no need to check it again
+        # just let the responsible thread to update it
+        if not instance.is_up(db):
+            return HttpResponse(status=500)
+
+        # if it is up, we check again to see if the state still the same
         self._client.get(instance)
         status = 500
-        if instance.state == "running" and db.is_up():
+        if instance.is_up(db):
             status = 204
 
         return HttpResponse(status=status)

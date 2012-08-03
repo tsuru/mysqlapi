@@ -1,7 +1,8 @@
 from django.db.models import CharField
 from django.test import TestCase
+from mocker import Mocker
 
-from mysqlapi.api.models import Instance
+from mysqlapi.api.models import DatabaseManager, Instance
 
 
 class InstanceTestCase(TestCase):
@@ -93,3 +94,23 @@ class InstanceTestCase(TestCase):
     def test_reason_should_have_None_as_default_value(self):
         field = Instance._meta.get_field_by_name("reason")[0]
         self.assertEqual(None, field.default)
+
+    def test_is_up_shold_return_true_when_instance_is_running_and_db_is_up(self):
+        mocker = Mocker()
+        obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
+        obj()
+        mocker.result(True)
+        mocker.replay()
+        instance = Instance(name="foo", state="running")
+        manager = DatabaseManager("foo", "127.0.0.1")
+        self.assertTrue(instance.is_up(manager))
+
+    def test_is_up_should_return_false_when_instance_is_not_running(self):
+        mocker = Mocker()
+        obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
+        obj()
+        mocker.result(False)
+        mocker.replay()
+        instance = Instance(name="foo", state="running")
+        manager = DatabaseManager("foo", "127.0.0.1")
+        self.assertFalse(instance.is_up(manager))

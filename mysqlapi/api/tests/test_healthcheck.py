@@ -10,7 +10,7 @@ from mysqlapi.api.views import Healthcheck
 class HealthcheckTestCase(TestCase):
 
     def setUp(self):
-        self.instance = Instance.objects.create(name="g8mysql")
+        self.instance = Instance.objects.create(name="g8mysql", state="running")
 
     def tearDown(self):
         self.instance.delete()
@@ -20,6 +20,7 @@ class HealthcheckTestCase(TestCase):
         obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
         obj()
         mocker.result(True)
+        mocker.count(1, 2)
         mocker.replay()
         request = RequestFactory().get("/resources/g8mysql/status/")
         view = Healthcheck()
@@ -48,6 +49,7 @@ class HealthcheckTestCase(TestCase):
         obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
         obj()
         mocker.result(True)
+        mocker.count(1, 2)
         mocker.replay()
 
         request = RequestFactory().get("/resources/g8mysql/status/")
@@ -57,10 +59,11 @@ class HealthcheckTestCase(TestCase):
 
         response = view.get(request, "g8mysql")
         self.assertEqual(204, response.status_code)
-        self.assertEqual(["get instance g8mysql"], fake.actions)
         mocker.verify()
 
-    def test_healthcheck_calls_ec2_get_when_instance_is_pending_and_returns_500(self):
+    def test_healthcheck_does_not_calls_ec2_get_when_instance_is_pending_and_returns_500(self):
+        self.instance.state = "pending"
+        self.instance.save()
         request = RequestFactory().get("/resources/g8mysql/status/")
         view = Healthcheck()
         fake = mocks.FakeEC2ClientPendingInstance()
@@ -68,4 +71,4 @@ class HealthcheckTestCase(TestCase):
 
         response = view.get(request, "g8mysql")
         self.assertEqual(500, response.status_code)
-        self.assertEqual(["get instance g8mysql"], fake.actions)
+        self.assertEqual([], fake.actions)

@@ -92,6 +92,11 @@ class Instance(models.Model):
     reason = models.CharField(max_length=1000, null=True, blank=True, default=None)
     host = models.CharField(max_length=50, null=True, blank=True)
 
+    def is_up(self, manager):
+        if self.state == "running" and manager.is_up():
+            return True
+        return False
+
 
 class DatabaseCreator(threading.Thread):
 
