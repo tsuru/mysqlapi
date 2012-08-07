@@ -140,15 +140,10 @@ LOGGING = {
     }
 }
 
-EC2_ENDPOINT = 'your-host'
-EC2_PORT = 6667
-EC2_PATH = '/euca/Claudi'
-EC2_ACCESS_KEY = 'access-key'
-EC2_SECRET_KEY = 'very-secret'
-EC2_AMI = 'ami-000000ff'
-EC2_KEY_NAME = 'your-key-name'
-
-try:
-    from settings_local import *
-except ImportError:
-    pass
+EC2_ENDPOINT = os.environ.get("MYSQLAPI_EC2_ENDPOINT")
+EC2_PORT = os.environ.get("MYSQLAPI_EC2_PORT")
+EC2_PATH = os.environ.get("MYSQLAPI_EC2_PATH")
+EC2_ACCESS_KEY = os.environ.get("MYSQLAPI_EC2_ACCESS_KEY")
+EC2_SECRET_KEY = os.environ.get("MYSQLAPI_EC2_SECRET_KEY")
+EC2_AMI = os.environ.get("MYSQLAPI_EC2_AMI")
+EC2_KEY_NAME = os.environ.get("MYSQLAPI_EC2_KEY_NAME")
