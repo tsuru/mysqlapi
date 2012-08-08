@@ -37,6 +37,9 @@ class CreateUser(View):
         except Exception, e:
             return HttpResponse(e.args[-1], status=500)
         config = {
+            "MYSQL_HOST": instance.host,
+            "MYSQL_PORT": 3306,
+            "MYSQL_DATABASE_NAME": instance.name,
             "MYSQL_USER": username,
             "MYSQL_PASSWORD": password,
         }
