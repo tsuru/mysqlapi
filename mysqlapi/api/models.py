@@ -113,11 +113,12 @@ class DatabaseCreator(threading.Thread):
         try:
             db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
             db.create_database()
+            self.instance.save()
         except Exception as e:
             self.ec2_client.terminate(self.instance)
             self.instance.state = "error"
             self.instance.reason = unicode(e)
-        self.instance.save()
+            self.instance.save()
 
 
 def create_database(instance, ec2_client):
