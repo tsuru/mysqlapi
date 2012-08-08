@@ -74,7 +74,7 @@ def drop_user(request, name, hostname):
         db.drop_user(name, hostname)
     except Exception, e:
         return HttpResponse(e.args[-1], status=500)
-    return HttpResponse("", status=200)
+    return HttpResponse("", status=204)
 
 
 class CreateUserOrDropDatabase(View):

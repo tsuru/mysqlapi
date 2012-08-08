@@ -44,7 +44,7 @@ class DropUserViewTestCase(TestCase):
 
         request = RequestFactory().delete("/ciclops")
         response = drop_user(request, "ciclops", "localhost")
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='localhost'")
         row = self.cursor.fetchone()
@@ -56,7 +56,7 @@ class DropUserViewTestCase(TestCase):
 
         request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
         response = drop_user(request, "ciclops", "localhost")
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
         self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='localhost'")
         row = self.cursor.fetchone()
