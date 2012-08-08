@@ -1,6 +1,6 @@
 import os
 
-DEBUG = os.environ.get("MYSQL_API_DEBUG", True)
+DEBUG = int(os.environ.get("MYSQLAPI_DEBUG", 1)) != 0
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = ()
