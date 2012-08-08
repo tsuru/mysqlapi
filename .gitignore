@@ -1,3 +1,4 @@
 *.sw[a-z]
 *.pyc
 settings_local.py
+debug.log
