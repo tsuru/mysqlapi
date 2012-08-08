@@ -52,7 +52,7 @@ class CreateDatabase(View):
     def post(self, request):
         if not "name" in request.POST:
             return HttpResponse("App name is missing", status=500)
-        name = request.POST.get("name", None)
+        name = request.POST.get("name")
         if not name:
             return HttpResponse("App name is empty", status=500)
         instance = Instance(name=name)
