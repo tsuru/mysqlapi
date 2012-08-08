@@ -144,7 +144,7 @@ LOGGING = {
             "level": "ERROR",
             "propagate": True,
         },
-        "mysqlapi": {
+        "": {
             "handlers": ["file"],
             "level": "DEBUG",
             "propagate": True,
