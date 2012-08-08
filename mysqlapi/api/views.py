@@ -105,7 +105,7 @@ class DropDatabase(View):
             db.drop_database()
         except Exception, e:
             return HttpResponse(e.args[-1], status=500)
-        return HttpResponse("", status=200)
+        return HttpResponse("", status=204)
 
 
 @require_http_methods(["GET"])

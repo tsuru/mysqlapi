@@ -52,7 +52,7 @@ class DropDatabaseViewTestCase(TestCase):
         view = DropDatabase()
         view._client = self.fake
         response = view.delete(request, "ciclops")
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
@@ -66,7 +66,7 @@ class DropDatabaseViewTestCase(TestCase):
         view = DropDatabase()
         view._client = self.fake
         response = view.delete(request, "ciclops")
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
         row = self.cursor.fetchone()
@@ -81,5 +81,5 @@ class DropDatabaseViewTestCase(TestCase):
         request = RequestFactory().delete("/ciclops", {"service_host": "127.0.0.1"})
         resp = view.delete(request, "ciclops")
 
-        self.assertEqual(200, resp.status_code)
+        self.assertEqual(204, resp.status_code)
         self.assertEqual(["terminate instance ciclops"], self.fake.actions)
