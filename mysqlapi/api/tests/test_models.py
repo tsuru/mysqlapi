@@ -18,6 +18,10 @@ class InstanceTestCase(TestCase):
         field = Instance._meta.get_field_by_name("name")[0]
         self.assertEqual(100, field.max_length)
 
+    def test_instance_name_should_be_unique(self):
+        field = Instance._meta.get_field_by_name("name")[0]
+        self.assertTrue(field.unique)
+
     def test_instance_should_have_an_ec2_id(self):
         self.assertIn("ec2_id", Instance._meta.get_all_field_names())
 

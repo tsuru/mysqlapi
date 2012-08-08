@@ -86,7 +86,7 @@ class Instance(models.Model):
         ("error", "error"),
     )
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     ec2_id = models.CharField(max_length=100)
     state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
     reason = models.CharField(max_length=1000, null=True, blank=True, default=None)
