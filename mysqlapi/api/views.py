@@ -35,7 +35,7 @@ class CreateUser(View):
         try:
             username, password = db.create_user(name, hostname)
         except Exception, e:
-            return HttpResponse(e[1], status=500)
+            return HttpResponse(e.args[-1], status=500)
         config = {
             "MYSQL_USER": username,
             "MYSQL_PASSWORD": password,
@@ -59,7 +59,7 @@ class CreateDatabase(View):
         try:
             create_database(instance, self._client)
         except Exception, e:
-            return HttpResponse(e[1], status=500)
+            return HttpResponse(e.args[-1], status=500)
         return HttpResponse("ok", status=201)
 
 
@@ -70,7 +70,7 @@ def drop_user(request, name, hostname):
     try:
         db.drop_user(name, hostname)
     except Exception, e:
-        return HttpResponse(e[1], status=500)
+        return HttpResponse(e.args[-1], status=500)
     return HttpResponse("", status=200)
 
 
@@ -101,7 +101,7 @@ class DropDatabase(View):
         try:
             db.drop_database()
         except Exception, e:
-            return HttpResponse(e[1], status=500)
+            return HttpResponse(e.args[-1], status=500)
         return HttpResponse("", status=200)
 
 
