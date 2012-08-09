@@ -93,6 +93,7 @@ class Instance(models.Model):
     state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
     reason = models.CharField(max_length=1000, null=True, blank=True, default=None)
     host = models.CharField(max_length=50, null=True, blank=True)
+    port = models.CharField(max_length=5, default="3306")
 
     def is_up(self, manager):
         if self.state == "running" and manager.is_up():

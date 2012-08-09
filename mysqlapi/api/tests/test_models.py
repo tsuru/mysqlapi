@@ -76,6 +76,21 @@ class InstanceTestCase(TestCase):
         field = Instance._meta.get_field_by_name("host")[0]
         self.assertTrue(field.null)
 
+    def test_instance_should_have_a_port(self):
+        self.assertIn("port", Instance._meta.get_all_field_names())
+
+    def test_port_should_be_a_CharField(self):
+        field = Instance._meta.get_field_by_name("port")[0]
+        self.assertIsInstance(field, CharField)
+
+    def test_port_should_have_at_most_5_characters(self):
+        field = Instance._meta.get_field_by_name("port")[0]
+        self.assertEqual(5, field.max_length)
+
+    def test_port_default_value_should_be_3306(self):
+        field = Instance._meta.get_field_by_name("port")[0]
+        self.assertEqual("3306", field.default)
+
     def test_instance_should_have_reason_of_failure(self):
         self.assertIn("reason", Instance._meta.get_all_field_names())
 
