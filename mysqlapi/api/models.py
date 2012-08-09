@@ -2,6 +2,7 @@ import hashlib
 import os
 import subprocess
 import threading
+import time
 import uuid
 
 from django.db import models
@@ -109,7 +110,7 @@ class DatabaseCreator(threading.Thread):
 
     def run(self):
         while not self.ec2_client.get(self.instance):
-            pass
+            time.sleep(2)
         try:
             db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
             db.create_database()
