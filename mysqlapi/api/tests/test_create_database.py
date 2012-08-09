@@ -2,6 +2,7 @@
 import time
 import unittest
 
+from django.conf import settings
 from django.test.client import RequestFactory
 from mocker import Mocker
 
@@ -18,10 +19,13 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         cls.conn = Connection(hostname="localhost", username="root")
         cls.conn.open()
         cls.cursor = cls.conn.cursor()
+        cls.old_poll_interval = settings.EC2_POLL_INTERVAL
+        settings.EC2_POLL_INTERVAL = 0
 
     @classmethod
     def tearDownClass(cls):
         cls.conn.close()
+        settings.EC2_POLL_INTERVAL = cls.old_poll_interval
 
     def test_create_database_should_returns_500_when_name_is_missing(self):
         request = RequestFactory().post("/", {})
@@ -89,7 +93,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             host="127.0.0.1",
             state="running",
         )
-        ec2_client = mocks.MultipleFailureEC2Client(times=2)
+        ec2_client = mocks.MultipleFailureEC2Client(times=1)
         try:
             t = create_database(instance, ec2_client)
             t.join()

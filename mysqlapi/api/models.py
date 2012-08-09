@@ -5,6 +5,7 @@ import threading
 import time
 import uuid
 
+from django.conf import settings
 from django.db import models
 
 from mysqlapi.api.database import Connection
@@ -110,7 +111,7 @@ class DatabaseCreator(threading.Thread):
 
     def run(self):
         while not self.ec2_client.get(self.instance):
-            time.sleep(2)
+            time.sleep(settings.EC2_POLL_INTERVAL)
         try:
             db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
             db.create_database()
