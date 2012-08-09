@@ -97,15 +97,10 @@ class DropDatabase(View):
             instance = Instance.objects.get(name=name)
         except Instance.DoesNotExist:
             return HttpResponse("Can't drop database '%s'; database doesn't exist" % name, status=500)
-        self._client.terminate(instance)
-        instance.delete()
-        host = _get_service_host(request.GET)
-        db = DatabaseManager(name, host)
-        try:
-            db.drop_database()
-        except Exception, e:
-            return HttpResponse(e.args[-1], status=500)
-        return HttpResponse("", status=204)
+        if self._client.terminate(instance):
+            instance.delete()
+            return HttpResponse("", status=204)
+        return HttpResponse("Failed to terminate the instance.", status=500)
 
 
 @require_http_methods(["GET"])
