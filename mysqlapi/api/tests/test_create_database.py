@@ -60,7 +60,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             view._client = mocks.FakeEC2Client()
             response = view.post(request)
             self.assertEqual(201, response.status_code)
-            self.assertEqual("ok", response.content)
+            self.assertEqual("", response.content)
             time.sleep(0.5)
             self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
             row = self.cursor.fetchone()

@@ -63,7 +63,7 @@ class CreateDatabase(View):
             create_database(instance, self._client)
         except Exception, e:
             return HttpResponse(e.args[-1], status=500)
-        return HttpResponse("ok", status=201)
+        return HttpResponse("", status=201)
 
 
 @require_http_methods(["DELETE"])
