@@ -50,7 +50,7 @@ class DropDatabaseViewTestCase(TestCase):
         view = DropDatabase()
         view._client = self.fake
         response = view.delete(request, "ciclops")
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(200, response.status_code)
         with self.assertRaises(Instance.DoesNotExist):
             Instance.objects.get(name="ciclops")
 
@@ -61,5 +61,5 @@ class DropDatabaseViewTestCase(TestCase):
         view._client = fake
         request = RequestFactory().delete("/ciclops")
         resp = view.delete(request, "ciclops")
-        self.assertEqual(204, resp.status_code)
+        self.assertEqual(200, resp.status_code)
         self.assertEqual(["terminate instance ciclops"], fake.actions)
