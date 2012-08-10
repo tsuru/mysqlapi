@@ -68,13 +68,16 @@ class CreateDatabase(View):
 
 @require_http_methods(["DELETE"])
 def drop_user(request, name, hostname):
-    host = _get_service_host(request.GET)
-    db = DatabaseManager(name, host)
+    try:
+        instance = Instance.objects.get(name=name)
+    except Instance.DoesNotExist:
+        return HttpResponse("Instance not found.", status=404)
+    db = DatabaseManager(name, instance.host)
     try:
         db.drop_user(name, hostname)
     except Exception, e:
         return HttpResponse(e.args[-1], status=500)
-    return HttpResponse("", status=204)
+    return HttpResponse("", status=200)
 
 
 class CreateUserOrDropDatabase(View):
