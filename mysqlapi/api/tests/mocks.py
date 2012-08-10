@@ -18,6 +18,14 @@ class FakeEC2Client(object):
         instance.state = "running"
         return True
 
+    def authorize(self, instance):
+        self.actions.append("authorize instance %s" % instance.name)
+        return True
+
+    def unauthorize(self, instance):
+        self.actions.append("unauthorize instance %s" % instance.name)
+        return True
+
 
 class FakeEC2ClientPendingInstance(object):
 
