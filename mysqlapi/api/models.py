@@ -110,18 +110,25 @@ class DatabaseCreator(threading.Thread):
         self.password = password
         super(DatabaseCreator, self).__init__()
 
+    def _error(self, exc):
+        self.ec2_client.unauthorize(self.instance)
+        self.ec2_client.terminate(self.instance)
+        self.instance.state = "error"
+        self.instance.reason = unicode(exc)
+        self.instance.save()
+
     def run(self):
         while not self.ec2_client.get(self.instance):
             time.sleep(settings.EC2_POLL_INTERVAL)
+        if not self.ec2_client.authorize(self.instance):
+            self._error("Failed to authorize access to the instance.")
+            return
         try:
             db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
             db.create_database()
             self.instance.save()
-        except Exception as e:
-            self.ec2_client.terminate(self.instance)
-            self.instance.state = "error"
-            self.instance.reason = unicode(e)
-            self.instance.save()
+        except Exception as exc:
+            self._error(exc)
 
 
 def create_database(instance, ec2_client):

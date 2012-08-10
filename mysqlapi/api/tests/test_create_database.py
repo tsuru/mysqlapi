@@ -131,10 +131,46 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         try:
             t = create_database(instance, ec2_client)
             t.join()
+            self.assertIn("unauthorize instance home", ec2_client.actions)
             self.assertIn("terminate instance home", ec2_client.actions)
+            index_unauthorize = ec2_client.actions.index("unauthorize instance home")
+            index_terminate = ec2_client.actions.index("terminate instance home")
+            assert index_unauthorize < index_terminate, "Should unauthorize before terminate."
             self.assertIsNotNone(instance.pk)
             self.assertEqual("error", instance.state)
             self.assertEqual(exc_msg, instance.reason)
         finally:
             instance.delete()
         mocker.verify()
+
+    def test_create_database_should_authorize_access_to_the_instance(self):
+        try:
+            cli = mocks.FakeEC2Client()
+            request = RequestFactory().post("/", {"name": "entre_nous", "service_host": "127.0.0.1"})
+            view = CreateDatabase()
+            view._client = cli
+            response = view.post(request)
+            time.sleep(0.5)
+            self.assertEqual(201, response.status_code)
+            self.assertIn("authorize instance entre_nous", cli.actions)
+        finally:
+            self.cursor.execute("DROP DATABASE IF EXISTS entre_nous")
+
+    def test_create_database_terminates_the_instance_if_it_fails_to_authorize_and_save_instance_with_error_state(self):
+        instance = Instance(
+            ec2_id="i-00009",
+            name="home",
+            host="unknown.host",
+            state="running",
+        )
+        ec2_client = mocks.FakeEC2Client()
+        ec2_client.authorize = lambda *args, **kwargs: False
+        try:
+            t = create_database(instance, ec2_client)
+            t.join()
+            self.assertIn("terminate instance home", ec2_client.actions)
+            self.assertIsNotNone(instance.pk)
+            self.assertEqual("error", instance.state)
+            self.assertEqual("Failed to authorize access to the instance.", instance.reason)
+        finally:
+            instance.delete()
