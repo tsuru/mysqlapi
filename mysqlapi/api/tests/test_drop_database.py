@@ -24,10 +24,10 @@ class DropDatabaseViewTestCase(TestCase):
     def create_ciclops(self):
         Instance.objects.create(name="ciclops")
 
-    def test_drop_should_returns_500_and_error_msg_in_body(self):
+    def test_drop_should_returns_404_and_error_msg_in_body_when_the_instance_does_not_exist(self):
         request = RequestFactory().delete("/")
         response = DropDatabase().delete(request, name="doesnotexists")
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(404, response.status_code)
         self.assertEqual("Can't drop database 'doesnotexists'; database doesn't exist", response.content)
 
     def test_drop_should_returns_405_when_method_is_not_delete(self):

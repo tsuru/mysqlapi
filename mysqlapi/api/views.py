@@ -92,7 +92,7 @@ class DropDatabase(View):
         try:
             instance = Instance.objects.get(name=name)
         except Instance.DoesNotExist:
-            return HttpResponse("Can't drop database '%s'; database doesn't exist" % name, status=500)
+            return HttpResponse("Can't drop database '%s'; database doesn't exist" % name, status=404)
         if self._client.unauthorize(instance) and self._client.terminate(instance):
             instance.delete()
             return HttpResponse("", status=200)
