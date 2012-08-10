@@ -54,7 +54,7 @@ class DropDatabaseViewTestCase(TestCase):
         with self.assertRaises(Instance.DoesNotExist):
             Instance.objects.get(name="ciclops")
 
-    def test_should_remove_ec2_instance(self):
+    def test_should_unauthorize_ec2_instance_before_terminate_it(self):
         self.create_ciclops()
         fake = mocks.FakeEC2Client()
         view = DropDatabase()
@@ -62,4 +62,4 @@ class DropDatabaseViewTestCase(TestCase):
         request = RequestFactory().delete("/ciclops")
         resp = view.delete(request, "ciclops")
         self.assertEqual(200, resp.status_code)
-        self.assertEqual(["terminate instance ciclops"], fake.actions)
+        self.assertEqual([u"unauthorize instance ciclops", u"terminate instance ciclops"], fake.actions)
