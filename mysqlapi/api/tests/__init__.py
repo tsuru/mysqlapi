@@ -7,4 +7,3 @@ from .test_drop_user import *
 from .test_export import *
 from .test_healthcheck import *
 from .test_models import *
-from .test_service_host import *

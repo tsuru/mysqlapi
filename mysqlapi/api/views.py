@@ -10,13 +10,6 @@ import crane_ec2
 from mysqlapi.api.models import create_database, DatabaseManager, Instance
 
 
-def _get_service_host(dict):
-    host = dict.get("service_host")
-    if not host:
-        host = "localhost"
-    return host
-
-
 class CreateUser(View):
 
     def post(self, request, name, *args, **kwargs):
@@ -127,8 +120,7 @@ class Healthcheck(View):
         except Instance.DoesNotExist:
             return HttpResponse("Instance %s not found" % name, status=404)
 
-        host = _get_service_host(request.GET)
-        db = DatabaseManager(name, host)
+        db = DatabaseManager(name, instance.host)
 
         # if the vm is not up and running, there's no need to check it again
         # just let the responsible thread to update it
