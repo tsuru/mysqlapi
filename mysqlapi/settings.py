@@ -153,6 +153,9 @@ LOGGING = {
 }
 
 SHARED_SERVER = os.environ.get("MYSQLAPI_SHARED_SERVER")
+SHARED_USER = os.environ.get("MYSQLAPI_SHARED_USER", "root")
+SHARED_PASSWORD = os.environ.get("MYSQLAPI_SHARED_PASSWORD", "")
+
 EC2_ENDPOINT = os.environ.get("MYSQLAPI_EC2_ENDPOINT")
 EC2_PORT = os.environ.get("MYSQLAPI_EC2_PORT")
 EC2_PATH = os.environ.get("MYSQLAPI_EC2_PATH")
