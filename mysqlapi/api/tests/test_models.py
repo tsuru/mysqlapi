@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from django.conf import settings
 from django.db.models import BooleanField, CharField
 from django.test import TestCase
 from mocker import Mocker
@@ -6,6 +8,17 @@ from mysqlapi.api.models import DatabaseManager, Instance
 
 
 class InstanceTestCase(TestCase):
+
+    def setUp(self):
+        self.old_shared_server = settings.SHARED_SERVER
+        settings.SHARED_SERVER = None
+        self.old_shared_user = settings.SHARED_USER
+        self.old_shared_password = settings.SHARED_PASSWORD
+
+    def tearDown(self):
+        settings.SHARED_SERVER = self.old_shared_server
+        settings.SHARED_USER = self.old_shared_user
+        settings.SHARED_PASSWORD = self.old_shared_password
 
     def test_instance_should_have_a_name(self):
         self.assertIn("name", Instance._meta.get_all_field_names())
@@ -149,3 +162,27 @@ class InstanceTestCase(TestCase):
         instance = Instance(name="foo", state="running")
         manager = DatabaseManager("foo", "127.0.0.1")
         self.assertFalse(instance.is_up(manager))
+
+    def test_db_manager_dedicated_instance(self):
+        instance = Instance(
+            host="10.10.10.10",
+            shared=False,
+        )
+        db = instance.db_manager()
+        self.assertIsInstance(db, DatabaseManager)
+        self.assertEqual(instance.host, db.conn.hostname)
+        self.assertEqual("root", db.conn.username)
+        self.assertEqual("", db.conn.password)
+
+    def test_db_manager_shared_instance(self):
+        settings.SHARED_SERVER = "20.20.20.20"
+        settings.SHARED_USER = "fsouza"
+        settings.SHARED_PASSWORD = "123"
+        instance = Instance(
+            shared=True,
+        )
+        db = instance.db_manager()
+        self.assertIsInstance(db, DatabaseManager)
+        self.assertEqual("20.20.20.20", db.conn.hostname)
+        self.assertEqual("fsouza", db.conn.username)
+        self.assertEqual("123", db.conn.password)

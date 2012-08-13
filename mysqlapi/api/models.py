@@ -101,6 +101,16 @@ class Instance(models.Model):
             return True
         return False
 
+    def db_manager(self):
+        host = self.host
+        user = "root"
+        password = ""
+        if self.shared:
+            host = settings.SHARED_SERVER
+            user = settings.SHARED_USER
+            password = settings.SHARED_PASSWORD
+        return DatabaseManager(self.name, host=host, user=user, password=password)
+
 
 class DatabaseCreator(threading.Thread):
 
