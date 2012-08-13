@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.test import TestCase
 from django.test.client import RequestFactory
 
@@ -18,6 +19,13 @@ class DropUserViewTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.conn.close()
+
+    def setUp(self):
+        self.old_shared_server = settings.SHARED_SERVER
+        settings.SHARED_SERVER = None
+
+    def tearDown(self):
+        settings.SHARED_SERVER = self.old_shared_server
 
     def test_drop_should_return_500_and_error_msg_in_body(self):
         instance = Instance.objects.create(name="fails", host="127.0.0.1")
@@ -55,6 +63,21 @@ class DropUserViewTestCase(TestCase):
             self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='localhost'")
             row = self.cursor.fetchone()
             self.assertFalse(row)
+        finally:
+            instance.delete()
+
+    def test_drop_user_from_shared_instance(self):
+        settings.SHARED_SERVER = "127.0.0.1"
+        instance = Instance.objects.create(name="used", shared=True)
+        try:
+            db = DatabaseManager("used")
+            db.create_user("used", "127.0.0.1")
+            request = RequestFactory().delete("/used")
+            response = drop_user(request, "used", "127.0.0.1")
+            self.assertEqual(200, response.status_code)
+            self.cursor.execute("select User, Host FROM mysql.user WHERE User='used' AND Host='127.0.0.1'")
+            row = self.cursor.fetchone()
+            self.assertIsNone(row)
         finally:
             instance.delete()
 

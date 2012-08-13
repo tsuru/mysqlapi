@@ -73,7 +73,7 @@ def drop_user(request, name, hostname):
         instance = Instance.objects.get(name=name)
     except Instance.DoesNotExist:
         return HttpResponse("Instance not found.", status=404)
-    db = DatabaseManager(name, instance.host)
+    db = instance.db_manager()
     try:
         db.drop_user(name, hostname)
     except Exception, e:
