@@ -89,7 +89,7 @@ class Instance(models.Model):
     )
 
     name = models.CharField(max_length=100, unique=True)
-    ec2_id = models.CharField(max_length=100)
+    ec2_id = models.CharField(max_length=100, null=True, blank=True)
     state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
     reason = models.CharField(max_length=1000, null=True, blank=True, default=None)
     host = models.CharField(max_length=50, null=True, blank=True)

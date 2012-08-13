@@ -33,6 +33,11 @@ class InstanceTestCase(TestCase):
         field = Instance._meta.get_field_by_name("ec2_id")[0]
         self.assertEqual(100, field.max_length)
 
+    def test_ec2_id_should_accept_null_and_empty_values(self):
+        field = Instance._meta.get_field_by_name("ec2_id")[0]
+        self.assertTrue(field.blank)
+        self.assertTrue(field.null)
+
     def test_instance_should_have_an_state(self):
         self.assertIn("state", Instance._meta.get_all_field_names())
 
