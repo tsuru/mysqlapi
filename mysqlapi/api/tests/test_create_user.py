@@ -58,7 +58,7 @@ class CreateUserViewTestCase(TestCase):
             content = json.loads(response.content)
             expected = {
                 u"MYSQL_HOST": u"127.0.0.1",
-                u"MYSQL_PORT": 3306,
+                u"MYSQL_PORT": u"3306",
                 u"MYSQL_DATABASE_NAME": "ciclops",
                 u"MYSQL_USER": u"ciclops",
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
