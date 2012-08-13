@@ -61,7 +61,7 @@ class HealthcheckTestCase(TestCase):
         self.assertEqual(204, response.status_code)
         mocker.verify()
 
-    def test_healthcheck_does_not_calls_ec2_get_when_instance_is_pending_and_returns_500(self):
+    def test_healthcheck_does_not_calls_ec2_get_when_instance_is_pending_and_returns_202(self):
         self.instance.state = "pending"
         self.instance.save()
         request = RequestFactory().get("/resources/g8mysql/status/")
@@ -70,5 +70,5 @@ class HealthcheckTestCase(TestCase):
         view._client = fake
 
         response = view.get(request, "g8mysql")
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(202, response.status_code)
         self.assertEqual([], fake.actions)

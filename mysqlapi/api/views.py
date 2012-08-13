@@ -120,15 +120,12 @@ class Healthcheck(View):
         except Instance.DoesNotExist:
             return HttpResponse("Instance %s not found" % name, status=404)
 
+        if instance.state == "pending":
+            return HttpResponse("pending", status=202)
+
         db = DatabaseManager(name, instance.host)
 
-        # if the vm is not up and running, there's no need to check it again
-        # just let the responsible thread to update it
-        if not instance.is_up(db):
-            return HttpResponse(status=500)
-
         # if it is up, we check again to see if the state still the same
-        self._client.get(instance)
         status = 500
         if instance.is_up(db):
             status = 204
