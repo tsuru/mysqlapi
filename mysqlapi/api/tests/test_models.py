@@ -1,4 +1,4 @@
-from django.db.models import CharField
+from django.db.models import BooleanField, CharField
 from django.test import TestCase
 from mocker import Mocker
 
@@ -113,6 +113,17 @@ class InstanceTestCase(TestCase):
     def test_reason_should_have_None_as_default_value(self):
         field = Instance._meta.get_field_by_name("reason")[0]
         self.assertEqual(None, field.default)
+
+    def test_instance_should_have_a_shared_flag(self):
+        self.assertIn("shared", Instance._meta.get_all_field_names())
+
+    def test_shared_should_be_a_boolean_field(self):
+        field = Instance._meta.get_field_by_name("shared")[0]
+        self.assertIsInstance(field, BooleanField)
+
+    def test_shared_should_be_False_by_default(self):
+        field = Instance._meta.get_field_by_name("shared")[0]
+        self.assertEqual(False, field.default)
 
     def test_is_up_shold_return_true_when_instance_is_running_and_db_is_up(self):
         mocker = Mocker()
