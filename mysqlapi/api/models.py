@@ -132,7 +132,7 @@ class DatabaseCreator(threading.Thread):
             self._error(exc)
 
 
-def create_database(instance, ec2_client):
+def create_database(instance, ec2_client=None):
     if not ec2_client.run(instance):
         raise DatabaseCreationException(instance, "Failed to create EC2 instance.")
     instance.save()
