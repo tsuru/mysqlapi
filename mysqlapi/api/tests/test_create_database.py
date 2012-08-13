@@ -27,6 +27,13 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         cls.conn.close()
         settings.EC2_POLL_INTERVAL = cls.old_poll_interval
 
+    def setUp(self):
+        self.old_shared_server = settings.SHARED_SERVER
+        settings.SHARED_SERVER = None
+
+    def tearDown(self):
+        settings.SHARED_SERVER = self.old_shared_server
+
     def test_create_database_should_returns_500_when_name_is_missing(self):
         request = RequestFactory().post("/", {})
         view = CreateDatabase()
@@ -57,7 +64,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         response = view.dispatch(request)
         self.assertEqual(405, response.status_code)
 
-    def test_create_database(self):
+    def test_create_database_ec2(self):
         try:
             request = RequestFactory().post("/", {"name": "ciclops"})
             view = CreateDatabase()
@@ -173,4 +180,24 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             self.assertEqual("error", instance.state)
             self.assertEqual("Failed to authorize access to the instance.", instance.reason)
         finally:
+            instance.delete()
+
+    def test_create_database_shared(self):
+        settings.SHARED_SERVER = "127.0.0.1"
+        instance = Instance(
+            name="water",
+            ec2_id="i-681"
+        )
+        try:
+            create_database(instance)
+            self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'water'")
+            row = self.cursor.fetchone()
+            self.assertIsNotNone(row)
+            self.assertEqual("water", row[0])
+            self.assertIsNotNone(instance.pk)
+            self.assertTrue(instance.shared)
+            self.assertEqual("running", instance.state)
+            self.assertIsNone(instance.ec2_id)
+        finally:
+            self.cursor.execute("DROP DATABASE IF EXISTS water")
             instance.delete()

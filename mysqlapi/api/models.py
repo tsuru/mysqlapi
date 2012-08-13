@@ -132,10 +132,31 @@ class DatabaseCreator(threading.Thread):
             self._error(exc)
 
 
-def create_database(instance, ec2_client=None):
+def _create_shared_database(instance):
+    db = DatabaseManager(
+        name=instance.name,
+        host=settings.SHARED_SERVER,
+        user=settings.SHARED_USER,
+        password=settings.SHARED_PASSWORD,
+    )
+    db.create_database()
+    instance.state = "running"
+    instance.shared = True
+    instance.ec2_id = None
+    instance.save()
+
+
+def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
         raise DatabaseCreationException(instance, "Failed to create EC2 instance.")
     instance.save()
     t = DatabaseCreator(ec2_client, instance)
     t.start()
     return t
+
+
+def create_database(instance, ec2_client=None):
+    if settings.SHARED_SERVER:
+        return _create_shared_database(instance)
+    else:
+        return _create_dedicate_database(instance, ec2_client)
