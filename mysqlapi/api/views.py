@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import subprocess
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
@@ -24,13 +25,20 @@ class CreateUser(View):
             return HttpResponse("Instance not found", status=404)
         if instance.state != "running":
             return HttpResponse(u"You can't bind to this instance because it's not running.", status=412)
-        db = DatabaseManager(name, instance.host)
+        host = instance.host
+        user = "root"
+        access_password = ""
+        if instance.shared:
+            host = settings.SHARED_SERVER
+            user = settings.SHARED_USER
+            access_password = settings.SHARED_PASSWORD
+        db = DatabaseManager(name, host=host, user=user, password=access_password)
         try:
             username, password = db.create_user(name, hostname)
         except Exception, e:
             return HttpResponse(e.args[-1], status=500)
         config = {
-            "MYSQL_HOST": instance.host,
+            "MYSQL_HOST": host,
             "MYSQL_PORT": u"3306",
             "MYSQL_DATABASE_NAME": instance.name,
             "MYSQL_USER": username,
