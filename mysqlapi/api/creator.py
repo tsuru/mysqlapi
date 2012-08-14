@@ -1,7 +1,7 @@
 import Queue
 import threading
 
-creator_running = False
+model_class = None
 
 
 class InstanceQueue(object):
@@ -72,13 +72,24 @@ class DatabaseCreator(threading.Thread):
 _instance_queue = InstanceQueue()
 
 
+def build_queue():
+    for instance in model_class.objects.filter(state="pending", shared=False):
+        enqueue(instance)
+
+
 def reset_queue():
     global _instance_queue
     _instance_queue = InstanceQueue()
+    build_queue()
 
 
 def enqueue(instance):
     _instance_queue.put(instance)
+
+
+def set_model(cls):
+    global model_class
+    model_class = cls
 
 
 def start_creator(manager_class, ec2_client):

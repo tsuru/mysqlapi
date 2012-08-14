@@ -5,7 +5,7 @@ from django.conf import settings
 from django.test.client import RequestFactory
 from mocker import Mocker
 
-from mysqlapi.api.creator import _instance_queue, reset_queue, start_creator
+from mysqlapi.api.creator import _instance_queue, reset_queue, set_model, start_creator
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance
 from mysqlapi.api.tests import mocks
@@ -21,6 +21,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         cls.cursor = cls.conn.cursor()
         cls.old_poll_interval = settings.EC2_POLL_INTERVAL
         settings.EC2_POLL_INTERVAL = 0
+        set_model(Instance)
 
     @classmethod
     def tearDownClass(cls):
