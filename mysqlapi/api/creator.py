@@ -48,7 +48,10 @@ class DatabaseCreator(threading.Thread):
 
     def run(self):
         while not _instance_queue.closed:
-            instance = _instance_queue.get(timeout=10)
+            try:
+                instance = _instance_queue.get(timeout=2)
+            except Queue.Empty:
+                continue
             if not self.ec2_client.get(instance):
                 _instance_queue.put(instance)
                 continue
