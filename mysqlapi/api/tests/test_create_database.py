@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import time
 import unittest
 
 from django.conf import settings
 from django.test.client import RequestFactory
 from mocker import Mocker
 
+from mysqlapi.api.creator import _instance_queue, reset_queue, start_creator
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance
 from mysqlapi.api.tests import mocks
@@ -26,10 +26,12 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
     def tearDownClass(cls):
         cls.conn.close()
         settings.EC2_POLL_INTERVAL = cls.old_poll_interval
+        _instance_queue.close()
 
     def setUp(self):
         self.old_shared_server = settings.SHARED_SERVER
         settings.SHARED_SERVER = None
+        reset_queue()
 
     def tearDown(self):
         settings.SHARED_SERVER = self.old_shared_server
@@ -66,13 +68,15 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
 
     def test_create_database_ec2(self):
         try:
+            client = mocks.FakeEC2Client()
+            t = start_creator(DatabaseManager, client)
             request = RequestFactory().post("/", {"name": "ciclops"})
             view = CreateDatabase()
-            view._client = mocks.FakeEC2Client()
+            view._client = client
             response = view.post(request)
             self.assertEqual(201, response.status_code)
             self.assertEqual("", response.content)
-            time.sleep(0.5)
+            t.stop()
             self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
             row = self.cursor.fetchone()
             self.assertEqual("ciclops", row[0])
@@ -83,27 +87,29 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
     def test_create_database_should_call_run_from_client(self):
         try:
             cli = mocks.FakeEC2Client()
+            t = start_creator(DatabaseManager, cli)
             request = RequestFactory().post("/", {"name": "bowl", "service_host": "127.0.0.1"})
             view = CreateDatabase()
             view._client = cli
             response = view.post(request)
-            time.sleep(0.5)
+            t.stop()
             self.assertEqual(201, response.status_code)
             self.assertIn("run instance bowl", cli.actions)
         finally:
             self.cursor.execute("DROP DATABASE IF EXISTS bowl")
 
-    def test_create_database_function_start_thread_that_creates_the_database_once_the_instance_changes_it_state(self):
+    def test_create_database_function_sends_the_instance_in_the_creator_queue(self):
         instance = Instance(
             ec2_id="i-00009",
             name="der_trommler",
             host="127.0.0.1",
             state="running",
         )
-        ec2_client = mocks.MultipleFailureEC2Client(times=1)
+        ec2_client = mocks.MultipleFailureEC2Client(times=0)
         try:
-            t = create_database(instance, ec2_client)
-            t.join()
+            t = start_creator(DatabaseManager, ec2_client)
+            create_database(instance, ec2_client)
+            t.stop()
             self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'der_trommler'")
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
@@ -136,8 +142,9 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         )
         ec2_client = mocks.FakeEC2Client()
         try:
-            t = create_database(instance, ec2_client)
-            t.join()
+            t = start_creator(DatabaseManager, ec2_client)
+            create_database(instance, ec2_client)
+            t.stop()
             self.assertIn("unauthorize instance home", ec2_client.actions)
             self.assertIn("terminate instance home", ec2_client.actions)
             index_unauthorize = ec2_client.actions.index("unauthorize instance home")
@@ -153,11 +160,12 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
     def test_create_database_should_authorize_access_to_the_instance(self):
         try:
             cli = mocks.FakeEC2Client()
+            t = start_creator(DatabaseManager, cli)
             request = RequestFactory().post("/", {"name": "entre_nous", "service_host": "127.0.0.1"})
             view = CreateDatabase()
             view._client = cli
             response = view.post(request)
-            time.sleep(0.5)
+            t.stop()
             self.assertEqual(201, response.status_code)
             self.assertIn("authorize instance entre_nous", cli.actions)
         finally:
@@ -173,8 +181,9 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         ec2_client = mocks.FakeEC2Client()
         ec2_client.authorize = lambda *args, **kwargs: False
         try:
-            t = create_database(instance, ec2_client)
-            t.join()
+            t = start_creator(DatabaseManager, ec2_client)
+            create_database(instance, ec2_client)
+            t.stop()
             self.assertIn("terminate instance home", ec2_client.actions)
             self.assertIsNotNone(instance.pk)
             self.assertEqual("error", instance.state)

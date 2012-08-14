@@ -1,13 +1,12 @@
 import hashlib
 import os
 import subprocess
-import threading
-import time
 import uuid
 
 from django.conf import settings
 from django.db import models
 
+from mysqlapi.api import creator
 from mysqlapi.api.database import Connection
 
 
@@ -112,36 +111,6 @@ class Instance(models.Model):
         return DatabaseManager(self.name, host=host, user=user, password=password)
 
 
-class DatabaseCreator(threading.Thread):
-
-    def __init__(self, ec2_client, instance, user="root", password=""):
-        self.instance = instance
-        self.ec2_client = ec2_client
-        self.user = user
-        self.password = password
-        super(DatabaseCreator, self).__init__()
-
-    def _error(self, exc):
-        self.ec2_client.unauthorize(self.instance)
-        self.ec2_client.terminate(self.instance)
-        self.instance.state = "error"
-        self.instance.reason = unicode(exc)
-        self.instance.save()
-
-    def run(self):
-        while not self.ec2_client.get(self.instance):
-            time.sleep(settings.EC2_POLL_INTERVAL)
-        if not self.ec2_client.authorize(self.instance):
-            self._error("Failed to authorize access to the instance.")
-            return
-        try:
-            db = DatabaseManager(self.instance.name, host=self.instance.host, user=self.user, password=self.password)
-            db.create_database()
-            self.instance.save()
-        except Exception as exc:
-            self._error(exc)
-
-
 def _create_shared_database(instance):
     db = DatabaseManager(
         name=instance.name,
@@ -160,9 +129,7 @@ def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
         raise DatabaseCreationException(instance, "Failed to create EC2 instance.")
     instance.save()
-    t = DatabaseCreator(ec2_client, instance)
-    t.start()
-    return t
+    creator.enqueue(instance)
 
 
 def create_database(instance, ec2_client=None):
