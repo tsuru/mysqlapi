@@ -128,11 +128,9 @@ class Healthcheck(View):
         if instance.state == "pending":
             return HttpResponse("pending", status=202)
 
-        db = DatabaseManager(name, instance.host)
-
         # if it is up, we check again to see if the state still the same
         status = 500
-        if instance.is_up(db):
+        if instance.is_up():
             status = 204
 
         return HttpResponse(status=status)

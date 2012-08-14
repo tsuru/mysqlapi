@@ -150,8 +150,7 @@ class InstanceTestCase(TestCase):
         mocker.result(True)
         mocker.replay()
         instance = Instance(name="foo", state="running")
-        manager = DatabaseManager("foo", "127.0.0.1")
-        self.assertTrue(instance.is_up(manager))
+        self.assertTrue(instance.is_up())
 
     def test_is_up_should_return_false_when_instance_is_not_running(self):
         mocker = Mocker()
@@ -160,8 +159,7 @@ class InstanceTestCase(TestCase):
         mocker.result(False)
         mocker.replay()
         instance = Instance(name="foo", state="running")
-        manager = DatabaseManager("foo", "127.0.0.1")
-        self.assertFalse(instance.is_up(manager))
+        self.assertFalse(instance.is_up())
 
     def test_db_manager_dedicated_instance(self):
         instance = Instance(

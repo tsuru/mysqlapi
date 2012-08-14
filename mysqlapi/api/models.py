@@ -96,8 +96,8 @@ class Instance(models.Model):
     port = models.CharField(max_length=5, default="3306")
     shared = models.BooleanField(default=False)
 
-    def is_up(self, manager):
-        if self.state == "running" and manager.is_up():
+    def is_up(self):
+        if self.state == "running" and self.db_manager().is_up():
             return True
         return False
 
