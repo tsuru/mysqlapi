@@ -87,6 +87,10 @@ def enqueue(instance):
     _instance_queue.put(instance)
 
 
+def close_queue():
+    _instance_queue.close()
+
+
 def set_model(cls):
     global model_class
     model_class = cls
