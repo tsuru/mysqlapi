@@ -91,3 +91,11 @@ CREATE TABLE `foo` (
     def test_is_up_return_False_something_is_not_ok_with_the_connection(self):
         db = DatabaseManager("wolverine", host="unknownhost.absolute.impossibru.moc")
         self.assertFalse(db.is_up())
+
+    def test_public_host_is_host_when_private_attribute_is_None(self):
+        db = DatabaseManager("wolverine", host="localhost")
+        self.assertEqual(db.host, db.public_host)
+
+    def test_public_host_is_the_value_of_the_private_attribute_when_it_is_defined(self):
+        db = DatabaseManager("wolverine", host="localhost", public_host="10.10.10.10")
+        self.assertEqual(db._public_host, db.public_host)

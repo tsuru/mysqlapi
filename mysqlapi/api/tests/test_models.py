@@ -14,11 +14,13 @@ class InstanceTestCase(TestCase):
         settings.SHARED_SERVER = None
         self.old_shared_user = settings.SHARED_USER
         self.old_shared_password = settings.SHARED_PASSWORD
+        self.old_shared_server_public_host = settings.SHARED_SERVER_PUBLIC_HOST
 
     def tearDown(self):
         settings.SHARED_SERVER = self.old_shared_server
         settings.SHARED_USER = self.old_shared_user
         settings.SHARED_PASSWORD = self.old_shared_password
+        settings.SHARED_SERVER_PUBLIC_HOST = self.old_shared_server_public_host
 
     def test_instance_should_have_a_name(self):
         self.assertIn("name", Instance._meta.get_all_field_names())
@@ -184,3 +186,12 @@ class InstanceTestCase(TestCase):
         self.assertEqual("20.20.20.20", db.conn.hostname)
         self.assertEqual("fsouza", db.conn.username)
         self.assertEqual("123", db.conn.password)
+
+    def test_db_manager_shared_instance_with_public_shared(self):
+        settings.SHARED_SERVER = "20.20.20.20"
+        settings.SHARED_SERVER_PUBLIC_HOST = "10.10.10.10"
+        settings.SHARED_USER = "fsouza"
+        settings.SHARED_PASSWORD = "123"
+        instance = Instance(shared=True)
+        db = instance.db_manager()
+        self.assertEqual("10.10.10.10", db.public_host)

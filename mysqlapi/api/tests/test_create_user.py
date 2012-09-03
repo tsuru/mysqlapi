@@ -24,10 +24,13 @@ class CreateUserViewTestCase(TestCase):
 
     def setUp(self):
         self.old_shared_server = settings.SHARED_SERVER
+        self.old_shared_server_public_host = settings.SHARED_SERVER_PUBLIC_HOST
         settings.SHARED_SERVER = None
+        settings.SHARED_SERVER_PUBLIC_HOST = None
 
     def tearDown(self):
         settings.SHARED_SERVER = self.old_shared_server
+        settings.SHARED_SERVER_PUBLIC_HOST = self.old_shared_server_public_host
 
     def test_create_user_should_returns_500_when_hostname_is_missing(self):
         request = RequestFactory().post("/", {})
@@ -95,6 +98,35 @@ class CreateUserViewTestCase(TestCase):
             content = json.loads(response.content)
             expected = {
                 u"MYSQL_HOST": u"localhost",
+                u"MYSQL_PORT": u"3306",
+                u"MYSQL_DATABASE_NAME": "inside_out",
+                u"MYSQL_USER": u"inside_out",
+                u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
+            }
+            self.assertEqual(expected, content)
+            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='192.168.1.10'")
+            row = self.cursor.fetchone()
+            self.assertIsNotNone(row)
+        finally:
+            db = DatabaseManager("inside_out")
+            db.drop_user("inside_out", "192.168.1.10")
+            instance.delete()
+
+    def test_create_user_in_shared_instance_with_public_host(self):
+        settings.SHARED_SERVER = "localhost"
+        settings.SHARED_SERVER_PUBLIC_HOST = "10.10.10.10"
+        instance = Instance.objects.create(
+            name="inside_out",
+            shared=True,
+            state="running",
+        )
+        try:
+            request = RequestFactory().post("/", {"hostname": "192.168.1.10"})
+            response = CreateUser.as_view()(request, "inside_out")
+            self.assertEqual(201, response.status_code)
+            content = json.loads(response.content)
+            expected = {
+                u"MYSQL_HOST": u"10.10.10.10",
                 u"MYSQL_PORT": u"3306",
                 u"MYSQL_DATABASE_NAME": "inside_out",
                 u"MYSQL_USER": u"inside_out",

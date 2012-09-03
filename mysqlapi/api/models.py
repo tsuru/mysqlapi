@@ -28,11 +28,18 @@ class DatabaseCreationException(BaseException):
 
 class DatabaseManager(object):
 
-    def __init__(self, name, host="localhost", user="root", password=""):
+    def __init__(self, name, host="localhost", user="root", password="", public_host=None):
         self.name = name
         self._host = host
         self.port = '3306'
         self.conn = Connection(self._host, user, password, "")
+        self._public_host = public_host
+
+    @property
+    def public_host(self):
+        if self._public_host:
+            return self._public_host
+        return self.host
 
     def create_database(self):
         self.conn.open()
@@ -104,11 +111,13 @@ class Instance(models.Model):
         host = self.host
         user = "root"
         password = ""
+        public_host = None
         if self.shared:
             host = settings.SHARED_SERVER
             user = settings.SHARED_USER
             password = settings.SHARED_PASSWORD
-        return DatabaseManager(self.name, host=host, user=user, password=password)
+            public_host = settings.SHARED_SERVER_PUBLIC_HOST
+        return DatabaseManager(self.name, host=host, user=user, password=password, public_host=public_host)
 
 
 def _create_shared_database(instance):
