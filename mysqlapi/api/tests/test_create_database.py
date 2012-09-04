@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 import unittest
 
 from django.conf import settings
@@ -237,7 +238,8 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             ec2_id="i-89",
         )
         try:
-            create_database(instance)
+            with self.assertRaises(InstanceAlreadyExists):
+                create_database(instance)
         finally:
             self.cursor.execute("DROP DATABASE caravan")
             if instance.pk:
