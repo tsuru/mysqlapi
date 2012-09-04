@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 import unittest
 
 from django.conf import settings
