@@ -1,0 +1,11 @@
+mysqlapi
+
+This service is used for mysql connections.
+
+Once binded, you will be able to use the following environment variables:
+
+    - MYSQL_HOST: host of MySQL server
+    - MYSQL_PORT: port of MySQL instance
+    - MYSQL_DATABASE_NAME: name of the database
+    - MYSQL_USER: MySQL user for connections
+    - MYSQL_PASSWORD: MySQL password for connections
