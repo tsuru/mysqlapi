@@ -7,7 +7,7 @@ from mocker import Mocker
 
 from mysqlapi.api.creator import _instance_queue, reset_queue, set_model, start_creator
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance, InstanceAlreadyExists
+from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance, InstanceAlreadyExists, InvalidInstanceName
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
@@ -237,7 +237,13 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             ec2_id="i-89",
         )
         try:
-            with self.assertRaises(InstanceAlreadyExists):
-                create_database(instance)
+            create_database(instance)
         finally:
             self.cursor.execute("DROP DATABASE caravan")
+            if instance.pk:
+                instance.delete()
+
+    def test_create_database_invalid_name(self):
+        instance = Instance(name="mysql")
+        with self.assertRaises(InvalidInstanceName):
+            create_database(instance)

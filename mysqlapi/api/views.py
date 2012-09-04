@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
 import crane_ec2
-from mysqlapi.api.models import create_database, DatabaseManager, Instance
+from mysqlapi.api.models import create_database, DatabaseManager, Instance, InstanceAlreadyExists, InvalidInstanceName
 
 
 class CreateUser(View):
@@ -54,7 +54,7 @@ class CreateDatabase(View):
         instance = Instance(name=name)
         try:
             create_database(instance, self._client)
-        except Exception, e:
+        except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         return HttpResponse("", status=201)
 

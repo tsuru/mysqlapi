@@ -3,6 +3,8 @@ import os
 import subprocess
 import uuid
 
+import MySQLdb
+
 from django.conf import settings
 from django.db import models
 
@@ -10,10 +12,16 @@ from mysqlapi.api import creator
 from mysqlapi.api.database import Connection
 
 
+class InvalidInstanceName(Exception):
+
+    def __init__(self, name):
+        self.args = [u"%s is a invalid name."]
+
+
 class InstanceAlreadyExists(Exception):
 
     def __init__(self, name):
-        self.msg = u"Instance %s already exists." % name
+        self.args = [u"Instance %s already exists." % name]
 
 
 class DatabaseCreationException(BaseException):
@@ -135,11 +143,10 @@ def _create_shared_database(instance):
     )
     try:
         db.create_database()
-    except BaseException as e:
+    except MySQLdb.ProgrammingError as e:
         if len(e.args) > 1 and "database exists" in e.args[1]:
             raise InstanceAlreadyExists(name=instance.name)
-        else:
-            raise
+        raise
     instance.state = "running"
     instance.shared = True
     instance.ec2_id = None
@@ -154,6 +161,8 @@ def _create_dedicate_database(instance, ec2_client):
 
 
 def create_database(instance, ec2_client=None):
+    if instance.name in settings.RESERVED_NAMES:
+        raise InvalidInstanceName(name=instance.name)
     if Instance.objects.filter(name=instance.name):
         raise InstanceAlreadyExists(name=instance.name)
     if settings.SHARED_SERVER:
