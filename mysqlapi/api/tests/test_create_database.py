@@ -7,7 +7,7 @@ from mocker import Mocker
 
 from mysqlapi.api.creator import _instance_queue, reset_queue, set_model, start_creator
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance
+from mysqlapi.api.models import create_database, DatabaseManager, DatabaseCreationException, Instance, InstanceAlreadyExists
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
@@ -157,6 +157,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         finally:
             instance.delete()
         mocker.verify()
+        mocker.reset()
 
     def test_create_database_should_authorize_access_to_the_instance(self):
         try:
@@ -211,3 +212,32 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         finally:
             self.cursor.execute("DROP DATABASE IF EXISTS water")
             instance.delete()
+
+    def test_create_database_when_instance_already_exist(self):
+        self.cursor.execute("CREATE DATABASE caravan")
+        settings.SHARED_SERVER = "127.0.0.1"
+        instance = Instance(
+            name="caravan",
+            ec2_id="i-89",
+        )
+        instance.save()
+        try:
+            with self.assertRaises(InstanceAlreadyExists):
+                create_database(instance)
+        finally:
+            self.cursor.execute("DROP DATABASE caravan")
+
+    # protecting against incosistency between the api database and mysql server
+    # itself
+    def test_create_database_when_database_already_exist(self):
+        self.cursor.execute("CREATE DATABASE caravan")
+        settings.SHARED_SERVER = "127.0.0.1"
+        instance = Instance(
+            name="caravan",
+            ec2_id="i-89",
+        )
+        try:
+            with self.assertRaises(InstanceAlreadyExists):
+                create_database(instance)
+        finally:
+            self.cursor.execute("DROP DATABASE caravan")

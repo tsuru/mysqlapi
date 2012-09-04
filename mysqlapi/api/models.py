@@ -10,6 +10,16 @@ from mysqlapi.api import creator
 from mysqlapi.api.database import Connection
 
 
+class InstanceAlreadyExists(Exception):
+
+    def __init__(self, name):
+        self.msg = u"Instance %s already exists." % name
+
+
+class DatabaseCreationException(BaseException):
+    pass
+
+
 def generate_password():
     return hashlib.sha1(uuid.uuid4().hex).hexdigest()
 
@@ -20,10 +30,6 @@ def generate_user(username):
     else:
         _username = username
     return _username
-
-
-class DatabaseCreationException(BaseException):
-    pass
 
 
 class DatabaseManager(object):
@@ -127,7 +133,13 @@ def _create_shared_database(instance):
         user=settings.SHARED_USER,
         password=settings.SHARED_PASSWORD,
     )
-    db.create_database()
+    try:
+        db.create_database()
+    except BaseException as e:
+        if len(e.args) > 1 and "database exists" in e.args[1]:
+            raise InstanceAlreadyExists(name=instance.name)
+        else:
+            raise
     instance.state = "running"
     instance.shared = True
     instance.ec2_id = None
@@ -142,6 +154,8 @@ def _create_dedicate_database(instance, ec2_client):
 
 
 def create_database(instance, ec2_client=None):
+    if Instance.objects.filter(name=instance.name):
+        raise InstanceAlreadyExists(name=instance.name)
     if settings.SHARED_SERVER:
         return _create_shared_database(instance)
     else:
