@@ -26,7 +26,7 @@ In order to have mysql API ready to receive requests, we need some bootstrap stu
 
 First export the django settings variable:
 
-    $> tsuru env-set DJANGO_SETTINGS_MODULE=mysqlapi.settings
+    $> tsuru env-set mysql-api DJANGO_SETTINGS_MODULE=mysqlapi.settings
 
 Now gunicorn is able to run with our wsgi.py configuration.
 After that, we need to run syncdb:
@@ -65,4 +65,8 @@ Try your configuration
 
 You can try if the previous configuration worked using curl:
 
-    $> curl -d '{}'
+    $> curl -d 'name=myapp' http://ec2-23-23-67-196.compute-1.amazonaws.com/resources
+
+This call is equivalente to tsuru service-add xx yy and will return 201 if everything goes ok.
+
+If there are any problems, be welcome to report an issue :)
