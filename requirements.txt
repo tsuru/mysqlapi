@@ -2,3 +2,4 @@ Django==1.4.1
 MySQL-python==1.2.3
 boto==2.5.2
 crane-ec2==0.2.1
+gunicorn==0.14.6
