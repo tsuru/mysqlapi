@@ -39,10 +39,11 @@ Choose your configuration mode
 ------------------------------
 
 There are two modes to configure the API usage behavior:
-    - `shared`: this configuration forces all applications to share the same mysql installation, in this mode, mysql API
-    will create a new user and a new database when added/binded by an app.
-    - `dedicated`: every app using mysql will have a single vm for it's usage, in this mode, mysql API will create a vm,
-    install everything needed to run mysql based on a predefined AMI and create a user and password.
+
+- `shared`: this configuration forces all applications to share the same mysql installation, in this mode, mysql API
+will create a new user and a new database when added/binded by an app.
+- `dedicated`: every app using mysql will have a single vm for it's usage, in this mode, mysql API will create a vm,
+install everything needed to run mysql based on a predefined AMI and create a user and password.
 
 Everything that is needed by the application to connect with mysql is provided automatically by tsuru, using environment variables,
 e.g. when you add/bind your app with mysql service, tsuru will export all environment variables returned by mysql API.
