@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import DatabaseManager, Instance
+from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
 from mysqlapi.api.views import CreateUser
 
 
@@ -86,7 +86,7 @@ class CreateUserViewTestCase(TestCase):
 
     def test_create_user_should_successed_with_dashed_separated_database_name(self):
         instance = Instance.objects.create(
-            name="some-db",
+            name=canonicalize_db_name("some-db"),
             shared=True,
             state="running",
         )
