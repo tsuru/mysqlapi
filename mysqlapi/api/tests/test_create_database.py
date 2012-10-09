@@ -186,7 +186,33 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         self.assertEqual(201, response.status_code)
         self.assertTrue(exists)
 
-    #TODO(flaviamissi): split test case from here (view tests from create_database function tests)
+
+class CreateDatabaseFunctionTestCase(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = Connection(hostname="localhost", username="root")
+        cls.conn.open()
+        cls.old_poll_interval = settings.EC2_POLL_INTERVAL
+        settings.EC2_POLL_INTERVAL = 0
+        set_model(Instance)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
+        settings.EC2_POLL_INTERVAL = cls.old_poll_interval
+        _instance_queue.close()
+
+    def setUp(self):
+        self.cursor = self.conn.cursor()
+        self.old_shared_server = settings.SHARED_SERVER
+        settings.SHARED_SERVER = None
+        reset_queue()
+
+    def tearDown(self):
+        settings.SHARED_SERVER = self.old_shared_server
+        self.cursor.close()
+
     def test_create_database_terminates_the_instance_if_it_fails_to_authorize_and_save_instance_with_error_state(self):
         instance = Instance(
             ec2_id="i-00009",
