@@ -84,6 +84,30 @@ class CreateUserViewTestCase(TestCase):
             db.drop_user("ciclops", "192.168.1.1")
             instance.delete()
 
+    def test_create_user_should_successed_with_dashed_separated_database_name(self):
+        instance = Instance.objects.create(
+            name="some-db",
+            shared=True,
+            state="running",
+        )
+        settings.SHARED_SERVER = "localhost"
+        request = RequestFactory().post("/", {"hostname": "someurl.com"})
+        response = CreateUser.as_view()(request, "some-db")
+        instance.delete()
+        self.assertEqual(201, response.status_code)
+
+    def test_create_user_should_successed_with_dashed_separated_hostname(self):
+        instance = Instance.objects.create(
+            name="some_db",
+            shared=True,
+            state="running",
+        )
+        settings.SHARED_SERVER = "localhost"
+        request = RequestFactory().post("/", {"hostname": "some-ec2-url.com"})
+        response = CreateUser.as_view()(request, "some_db")
+        instance.delete()
+        self.assertEqual(201, response.status_code)
+
     def test_create_user_in_shared_instance(self):
         settings.SHARED_SERVER = "localhost"
         instance = Instance.objects.create(

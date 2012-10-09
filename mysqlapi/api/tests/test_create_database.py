@@ -294,8 +294,7 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
             ec2_id="i-89",
         )
         create_database(instance)
-        instance = Instance.objects.filter(name=instance.name)[0]
-        instance.delete()
+        Instance.objects.filter(name=instance.name)[0].delete()
         try:
             with self.assertRaises(InstanceAlreadyExists):
                 create_database(instance)
