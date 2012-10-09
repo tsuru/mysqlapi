@@ -1,5 +1,6 @@
 import hashlib
 import os
+import re
 import subprocess
 import uuid
 
@@ -43,7 +44,7 @@ def generate_user(username):
 class DatabaseManager(object):
 
     def __init__(self, name, host="localhost", user="root", password="", public_host=None):
-        self.name = name
+        self.name = canonicalize_db_name(name)
         self._host = host
         self.port = '3306'
         self.conn = Connection(self._host, user, password, "")
@@ -161,6 +162,7 @@ def _create_dedicate_database(instance, ec2_client):
 
 
 def create_database(instance, ec2_client=None):
+    instance.name = canonicalize_db_name(instance.name)
     if instance.name in settings.RESERVED_NAMES:
         raise InvalidInstanceName(name=instance.name)
     if Instance.objects.filter(name=instance.name):
@@ -169,3 +171,10 @@ def create_database(instance, ec2_client=None):
         return _create_shared_database(instance)
     else:
         return _create_dedicate_database(instance, ec2_client)
+
+
+def canonicalize_db_name(name):
+    if re.search(r"[\W\s]", name) is not None:
+        prefix = hashlib.sha1(name).hexdigest()[:10]
+        name = re.sub(r"[\W\s]", "_", name) + prefix
+    return name
