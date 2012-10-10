@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import DatabaseManager, Instance
+from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import DropDatabase
 
@@ -85,5 +85,20 @@ class DropDatabaseViewTestCase(TestCase):
         resp = view.delete(request, "fandango")
         self.assertEqual(200, resp.status_code)
         self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'fandango'")
+        row = self.cursor.fetchone()
+        self.assertIsNone(row)
+
+    def test_drop_database_that_needs_name_canonicalization(self):
+        settings.SHARED_SERVER = "127.0.0.1"
+        canonical_name = canonicalize_db_name("xu-xu")
+        Instance.objects.create(name=canonical_name, shared=True)
+        db = DatabaseManager("xu-xu", settings.SHARED_SERVER)
+        db.create_database()
+
+        view = DropDatabase()
+        request = RequestFactory().delete("/xu-xu")
+        resp = view.delete(request, "xu-xu")
+        self.assertEqual(200, resp.status_code)
+        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = '{0}'".format(canonical_name))
         row = self.cursor.fetchone()
         self.assertIsNone(row)

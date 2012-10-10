@@ -7,12 +7,13 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
 import crane_ec2
-from mysqlapi.api.models import create_database, DatabaseManager, Instance
+from mysqlapi.api.models import create_database, DatabaseManager, Instance, canonicalize_db_name
 
 
 class CreateUser(View):
 
     def post(self, request, name, *args, **kwargs):
+        name = canonicalize_db_name(name)
         if not "hostname" in request.POST:
             return HttpResponse("Hostname is missing", status=500)
         hostname = request.POST.get("hostname", None)
@@ -51,7 +52,7 @@ class CreateDatabase(View):
         name = request.POST.get("name")
         if not name:
             return HttpResponse("App name is empty", status=500)
-        instance = Instance(name=name)
+        instance = Instance(name=canonicalize_db_name(name))
         try:
             create_database(instance, self._client)
         except Exception as e:
@@ -89,6 +90,7 @@ class DropDatabase(View):
         self._client = crane_ec2.Client()
 
     def delete(self, request, name, *args, **kwargs):
+        name = canonicalize_db_name(name)
         try:
             instance = Instance.objects.get(name=name)
         except Instance.DoesNotExist:

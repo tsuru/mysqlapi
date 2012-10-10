@@ -22,7 +22,7 @@ class ExportViewTestCase(TestCase):
     def test_export_from_a_custom_service_host(self):
         db = DatabaseManager("magneto", host="127.0.0.1")
         db.create_database()
-        db.create_user("magneto", "localhost")
+        db.create_user("magneto", "%")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -36,12 +36,12 @@ CREATE TABLE `foo` (
         self.assertEqual(200, result.status_code)
         self.assertEqual(expected, result.content.replace("InnoDB", "MyISAM"))
         db.drop_database()
-        db.drop_user("magneto", "localhost")
+        db.drop_user("magneto", "%")
 
     def test_export(self):
         db = DatabaseManager("magneto")
         db.create_database()
-        db.create_user("magneto", "localhost")
+        db.create_user("magneto", "%")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -55,7 +55,7 @@ CREATE TABLE `foo` (
         self.assertEqual(200, result.status_code)
         self.assertEqual(expected, result.content.replace("InnoDB", "MyISAM"))
         db.drop_database()
-        db.drop_user("magneto", "localhost")
+        db.drop_user("magneto", "%")
 
     def test_export_should_returns_500_when_database_does_not_exist(self):
         request = RequestFactory().get("/", {})

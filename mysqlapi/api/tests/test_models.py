@@ -1,10 +1,24 @@
 # -*- coding: utf-8 -*-
+import hashlib
+import unittest
 from django.conf import settings
 from django.db.models import BooleanField, CharField
 from django.test import TestCase
 from mocker import Mocker
 
-from mysqlapi.api.models import DatabaseManager, Instance
+from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
+
+
+class DatabaseManagerTestCase(unittest.TestCase):
+
+    def test_init_should_canonicalize_name_property(self):
+        db = DatabaseManager(
+            name="foo-bar",
+            host=settings.SHARED_SERVER,
+            user=settings.SHARED_USER,
+            password=settings.SHARED_PASSWORD,
+        )
+        self.assertRegexpMatches(db.name, "^foo_bar.*$")
 
 
 class InstanceTestCase(TestCase):
@@ -195,3 +209,22 @@ class InstanceTestCase(TestCase):
         instance = Instance(shared=True)
         db = instance.db_manager()
         self.assertEqual("10.10.10.10", db.public_host)
+
+
+class CanonicalizeTestCase(unittest.TestCase):
+
+    def test_canonicalize_db_name_should_do_nothing_when_name_has_no_dash(self):
+        canonicalized_name = canonicalize_db_name("foo_bar")
+        self.assertEqual("foo_bar", canonicalized_name)
+
+    def test_canonicalize_db_name_should_replace_dash_with_underline_and_add_random_hash_in_end(self):
+        canonicalized_name = canonicalize_db_name("foo-bar")
+        self.assertEqual(canonicalized_name, "foo_bar{0}".format(hashlib.sha1("foo-bar").hexdigest()[:10]))
+
+    def test_canonicalize_db_name_should_replace_white_spaces_with_underlines(self):
+        canonicalized_name = canonicalize_db_name(" foo ")
+        self.assertEqual(canonicalized_name, "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10]))
+
+    def test_canonicalize_db_name_should_not_redo_its_work_when_called_twice(self):
+        canonicalized_name = canonicalize_db_name(canonicalize_db_name(" foo "))
+        self.assertEqual(canonicalized_name, "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10]))

@@ -1,8 +1,8 @@
 #mysqlapi
 
-[![Build Status](https://secure.travis-ci.org/timeredbull/mysqlapi.png?branch=master)](http://travis-ci.org/timeredbull/mysqlapi)
+[![Build Status](https://secure.travis-ci.org/globocom/mysqlapi.png?branch=master)](http://travis-ci.org/globocom/mysqlapi)
 
-This is a service API for MySQL, used for [tsuru](https://github.com/timeredbull/tsuru).
+This is a service API for MySQL, used for [tsuru](https://github.com/globocom/tsuru).
 
 Installation
 ------------
