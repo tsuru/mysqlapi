@@ -75,13 +75,12 @@ class CreateUserViewTestCase(TestCase):
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
             }
             self.assertDictEqual(expected, content)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='192.168.1.1'")
+            self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='%'")
             row = self.cursor.fetchone()
             self.assertEqual("ciclops", row[0])
-            self.assertEqual("192.168.1.1", row[1])
         finally:
             db = DatabaseManager("ciclops")
-            db.drop_user("ciclops", "192.168.1.1")
+            db.drop_user("ciclops", "%")
             instance.delete()
 
     def test_create_user_should_successed_with_dashed_separated_database_name(self):
@@ -128,12 +127,12 @@ class CreateUserViewTestCase(TestCase):
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
             }
             self.assertEqual(expected, content)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='192.168.1.10'")
+            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='%'")
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
         finally:
             db = DatabaseManager("inside_out")
-            db.drop_user("inside_out", "192.168.1.10")
+            db.drop_user("inside_out", "%")
             instance.delete()
 
     def test_create_user_in_shared_instance_with_public_host(self):
@@ -157,12 +156,12 @@ class CreateUserViewTestCase(TestCase):
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
             }
             self.assertEqual(expected, content)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='192.168.1.10'")
+            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='%'")
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
         finally:
             db = DatabaseManager("inside_out")
-            db.drop_user("inside_out", "192.168.1.10")
+            db.drop_user("inside_out", "%")
             instance.delete()
 
     def test_create_user_returns_404_if_the_instance_does_not_exist(self):

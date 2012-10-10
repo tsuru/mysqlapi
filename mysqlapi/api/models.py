@@ -73,14 +73,14 @@ class DatabaseManager(object):
         cursor = self.conn.cursor()
         username = generate_user(username)
         password = generate_password()
-        cursor.execute("grant all privileges on %s.* to '%s'@'%s' identified by '%s'" % (self.name, username, host, password))
+        cursor.execute("grant all privileges on {0}.* to '{1}'@'%' identified by '{2}'".format(self.name, username, password))
         self.conn.close()
         return username, password
 
     def drop_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        cursor.execute("drop user %s@%s" % (username, host))
+        cursor.execute("drop user '{0}'@'%'".format(username))
         self.conn.close()
 
     def export(self):

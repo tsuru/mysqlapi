@@ -43,34 +43,34 @@ class DatabaseTestCase(TestCase):
 
     def test_create_user(self):
         db = DatabaseManager("wolverine")
-        db.create_user("wolverine", "localhost")
-        self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
+        db.create_user("wolverine", "%")
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='%'")
         row = self.cursor.fetchone()
         self.assertEqual("wolverine", row[0])
-        self.assertEqual("localhost", row[1])
-        db.drop_user("wolverine", "localhost")
+        self.assertEqual("%", row[1])
+        db.drop_user("wolverine", "%")
 
     def test_create_user_should_generate_an_username_when_username_length_is_greater_than_16(self):
         db = DatabaseManager("usernamegreaterthan16")
-        username, password = db.create_user("usernamegreaterthan16", "localhost")
-        self.cursor.execute("select User, Host FROM mysql.user WHERE User like 'usernamegrea%' AND Host='localhost'")
+        username, password = db.create_user("usernamegreaterthan16", "%")
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User like 'usernamegrea%' AND Host='%'")
         row = self.cursor.fetchone()
         self.assertEqual("usernamegrea", row[0][:12])
         db = DatabaseManager(row[0])
-        db.drop_user(username, "localhost")
+        db.drop_user(username, "%")
 
     def test_drop_user(self):
         db = DatabaseManager("magneto")
-        db.create_user("magneto", "localhost")
-        db.drop_user("magneto", "localhost")
-        self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='localhost'")
+        db.create_user("magneto", "%")
+        db.drop_user("magneto", "%")
+        self.cursor.execute("select User, Host FROM mysql.user WHERE User='wolverine' AND Host='%'")
         row = self.cursor.fetchone()
         self.assertFalse(row)
 
     def test_export(self):
         db = DatabaseManager("magneto")
         db.create_database()
-        db.create_user("magneto", "localhost")
+        db.create_user("magneto", "%")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
         expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -82,7 +82,7 @@ CREATE TABLE `foo` (
         result = db.export()
         self.assertEqual(expected, result.replace("InnoDB", "MyISAM"))
         db.drop_database()
-        db.drop_user("magneto", "localhost")
+        db.drop_user("magneto", "%")
 
     def test_is_up_return_True_if_everything_is_ok_with_the_connection(self):
         db = DatabaseManager("wolverine")
