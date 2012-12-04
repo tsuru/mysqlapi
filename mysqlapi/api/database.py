@@ -26,4 +26,4 @@ class Connection(object):
 
 
 def export():
-    return subprocess.check_output(["mysqldump", "-u", "root", "--all-databases", "--compact"], stderr=subprocess.STDOUT)
+    return subprocess.check_output(["mysqldump", "-u", "root", "--quick", "--all-databases", "--compact"], stderr=subprocess.STDOUT)
