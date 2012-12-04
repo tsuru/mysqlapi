@@ -1,2 +1,3 @@
 -r requirements.txt
 mocker==1.1.1
+mock==1.0.1
