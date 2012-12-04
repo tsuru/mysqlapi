@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import MySQLdb
+import subprocess
 
 
 class Connection(object):
@@ -21,3 +23,7 @@ class Connection(object):
 
     def cursor(self):
         return self._connection.cursor()
+
+
+def export():
+    return subprocess.check_output(["mysqldump", "-u", "root", "--databases", "--compact"], stderr=subprocess.STDOUT)
