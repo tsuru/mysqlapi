@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
+import mock
 
 from django.conf import settings
 from django.test.client import RequestFactory
-from mocker import Mocker
 
 from mysqlapi.api.creator import _instance_queue, reset_queue, set_model, start_creator
 from mysqlapi.api.database import Connection
@@ -132,34 +132,29 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
 
     def test_create_database_terminates_the_instance_if_it_fails_to_create_the_database_and_save_instance_with_error_state(self):
         exc_msg = u"I've failed to create your database, sorry! :("
-        mocker = Mocker()
-        c_database = mocker.replace("mysqlapi.api.models.DatabaseManager.create_database")
-        c_database()
-        mocker.throw(Exception(exc_msg))
-        mocker.replay()
-        instance = Instance(
-            ec2_id="i-00009",
-            name="home",
-            host="unknown.host",
-            state="running",
-        )
-        ec2_client = mocks.FakeEC2Client()
-        try:
-            t = start_creator(DatabaseManager, ec2_client)
-            create_database(instance, ec2_client)
-            t.stop()
-            self.assertIn("unauthorize instance home", ec2_client.actions)
-            self.assertIn("terminate instance home", ec2_client.actions)
-            index_unauthorize = ec2_client.actions.index("unauthorize instance home")
-            index_terminate = ec2_client.actions.index("terminate instance home")
-            assert index_unauthorize < index_terminate, "Should unauthorize before terminate."
-            self.assertIsNotNone(instance.pk)
-            self.assertEqual("error", instance.state)
-            self.assertEqual(exc_msg, instance.reason)
-        finally:
-            instance.delete()
-        mocker.verify()
-        mocker.reset()
+        with mock.patch("mysqlapi.api.models.DatabaseManager.create_database") as c_database:
+            c_database.side_effect=Exception(exc_msg)
+            instance = Instance(
+                ec2_id="i-00009",
+                name="home",
+                host="unknown.host",
+                state="running",
+            )
+            ec2_client = mocks.FakeEC2Client()
+            try:
+                t = start_creator(DatabaseManager, ec2_client)
+                create_database(instance, ec2_client)
+                t.stop()
+                self.assertIn("unauthorize instance home", ec2_client.actions)
+                self.assertIn("terminate instance home", ec2_client.actions)
+                index_unauthorize = ec2_client.actions.index("unauthorize instance home")
+                index_terminate = ec2_client.actions.index("terminate instance home")
+                assert index_unauthorize < index_terminate, "Should unauthorize before terminate."
+                self.assertIsNotNone(instance.pk)
+                self.assertEqual("error", instance.state)
+                self.assertEqual(exc_msg, instance.reason)
+            finally:
+                instance.delete()
 
     def test_create_database_should_authorize_access_to_the_instance(self):
         try:

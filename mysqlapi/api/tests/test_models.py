@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import unittest
+import mock
+
 from django.conf import settings
 from django.db.models import BooleanField, CharField
 from django.test import TestCase
-from mocker import Mocker
 
 from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
 
@@ -160,22 +161,16 @@ class InstanceTestCase(TestCase):
         self.assertEqual(False, field.default)
 
     def test_is_up_shold_return_true_when_instance_is_running_and_db_is_up(self):
-        mocker = Mocker()
-        obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
-        obj()
-        mocker.result(True)
-        mocker.replay()
-        instance = Instance(name="foo", state="running")
-        self.assertTrue(instance.is_up())
+        with mock.patch("mysqlapi.api.models.DatabaseManager.is_up") as is_up:
+            is_up.return_value = True
+            instance = Instance(name="foo", state="running")
+            self.assertTrue(instance.is_up())
 
     def test_is_up_should_return_false_when_instance_is_not_running(self):
-        mocker = Mocker()
-        obj = mocker.replace("mysqlapi.api.models.DatabaseManager.is_up")
-        obj()
-        mocker.result(False)
-        mocker.replay()
-        instance = Instance(name="foo", state="running")
-        self.assertFalse(instance.is_up())
+        with mock.patch("mysqlapi.api.models.DatabaseManager.is_up") as is_up:
+            is_up.return_value = False
+            instance = Instance(name="foo", state="running")
+            self.assertFalse(instance.is_up())
 
     def test_db_manager_dedicated_instance(self):
         instance = Instance(
