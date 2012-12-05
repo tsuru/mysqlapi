@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import NoArgsCommand
-from django.conf import settings
-
-from mysqlapi.api.database import export
 
 
 class Command(NoArgsCommand):
