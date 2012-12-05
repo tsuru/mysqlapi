@@ -8,3 +8,8 @@ def connect():
         settings.S3_ACCESS_KEY,
         settings.S3_SECRET_KEY
     )
+
+
+def bucket():
+    conn = connect()
+    return conn.create_bucket(settings.S3_BUCKET)
