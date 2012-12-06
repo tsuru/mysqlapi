@@ -41,3 +41,12 @@ class S3TestCase(TestCase):
                 key = Key.return_value
                 s3.store_data("data")
                 key.set_contents_from_string.assert_called_with("data")
+
+    def test_get_data(self):
+        with mock.patch("mysqlapi.api.management.commands.s3.bucket") as bucket_mock:
+            key = mock.Mock()
+            key.get_contents_as_string.return_value = "last_key"
+            bucket = mock.Mock()
+            bucket.get_key.return_value = key
+            bucket_mock.return_value = bucket
+            self.assertEqual("last_key", s3.get_data())

@@ -25,3 +25,8 @@ def store_data(data):
 
     key = Key(bucket())
     key.set_contents_from_string(data)
+
+
+def get_data():
+    key = bucket().get_key(last_key())
+    return key.get_contents_as_string()
