@@ -26,4 +26,4 @@ class DatabaseConnectionTestCase(TestCase):
             conn.close()
         except Exception as e:
             self.fail("Should not raise any exception when closing a None connection, but raised:\n%s" %
-                    traceback.format_exc(e))
+                      traceback.format_exc(e))

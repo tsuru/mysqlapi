@@ -36,7 +36,7 @@ class S3TestCase(TestCase):
             self.assertEqual("last_key", s3.last_key())
 
     def test_store_data(self):
-        with mock.patch("mysqlapi.api.management.commands.s3.bucket") as bucket:
+        with mock.patch("mysqlapi.api.management.commands.s3.bucket"):
             with mock.patch("boto.s3.key.Key") as Key:
                 key = Key.return_value
                 s3.store_data("data")

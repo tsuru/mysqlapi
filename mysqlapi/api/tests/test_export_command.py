@@ -11,7 +11,7 @@ import subprocess
 class ExportCommandTestCase(TestCase):
     def test_export(self):
         with mock.patch("subprocess.check_output") as check_output:
-            with mock.patch("mysqlapi.api.management.commands.export.Command.send_data") as send_data:
+            with mock.patch("mysqlapi.api.management.commands.export.Command.send_data"):
                 Command().handle_noargs()
                 check_output.assert_called_with(
                     ["mysqldump", "-u", "root", "--quick", "--all-databases", "--compact"],
@@ -33,7 +33,7 @@ class ExportCommandTestCase(TestCase):
             conn = mock.Mock()
             s3 = s3con.return_value
             s3.return_value = conn
-            with mock.patch("boto.s3.key.Key") as key:
+            with mock.patch("boto.s3.key.Key"):
                 Command().send_data("data")
                 s3con.assert_called_with(access, secret)
 
@@ -44,7 +44,7 @@ class ExportCommandTestCase(TestCase):
             conn = mock.Mock()
             s3 = s3con.return_value
             s3.return_value = conn
-            with mock.patch("boto.s3.key.Key") as key:
+            with mock.patch("boto.s3.key.Key"):
                 Command().send_data("data")
                 s3.create_bucket.assert_called_with(bucket)
 

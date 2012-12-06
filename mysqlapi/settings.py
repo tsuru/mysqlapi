@@ -10,12 +10,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3", # Add "postgresql_psycopg2", "mysql", "sqlite3" or "oracle".
-        "NAME": "api.db",                      # Or path to database file if using sqlite3.
-        "USER": "",                      # Not used with sqlite3.
-        "PASSWORD": "",                  # Not used with sqlite3.
-        "HOST": os.environ.get("MYSQLAPI_HOST", "localhost"),                      # Set to empty string for localhost. Not used with sqlite3.
-        "PORT": "",                      # Set to empty string for default. Not used with sqlite3.
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "api.db",
+        "USER": "",
+        "PASSWORD": "",
+        "HOST": os.environ.get("MYSQLAPI_HOST", "localhost"),
+        "PORT": "",
         "TEST_NAME": "test_api.db",
     }
 }
@@ -68,7 +68,6 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-#    "django.contrib.staticfiles.finders.DefaultStorageFinder",
 )
 
 # Make this unique, and don"t share it with anybody.
@@ -78,7 +77,6 @@ SECRET_KEY = "i8$33=vy4@n%q!d@&amp;mj$jsr)r7q6b9@f0301!hqp7f1)i4npg8"
 TEMPLATE_LOADERS = (
     "django.template.loaders.filesystem.Loader",
     "django.template.loaders.app_directories.Loader",
-#     "django.template.loaders.eggs.Loader",
 )
 
 MIDDLEWARE_CLASSES = (

@@ -133,7 +133,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
     def test_create_database_terminates_the_instance_if_it_fails_to_create_the_database_and_save_instance_with_error_state(self):
         exc_msg = u"I've failed to create your database, sorry! :("
         with mock.patch("mysqlapi.api.models.DatabaseManager.create_database") as c_database:
-            c_database.side_effect=Exception(exc_msg)
+            c_database.side_effect = Exception(exc_msg)
             instance = Instance(
                 ec2_id="i-00009",
                 name="home",
