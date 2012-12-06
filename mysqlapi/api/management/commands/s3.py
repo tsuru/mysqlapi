@@ -18,3 +18,10 @@ def bucket():
 def last_key():
     key = bucket().get_key("lastkey")
     return key.get_contents_as_string()
+
+
+def store_data(data):
+    from boto.s3.key import Key
+
+    key = Key(bucket())
+    key.set_contents_from_string(data)
