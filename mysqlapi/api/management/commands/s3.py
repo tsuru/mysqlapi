@@ -13,3 +13,8 @@ def connect():
 def bucket():
     conn = connect()
     return conn.create_bucket(settings.S3_BUCKET)
+
+
+def last_key():
+    key = bucket().get_key("lastkey")
+    return key.get_contents_as_string()

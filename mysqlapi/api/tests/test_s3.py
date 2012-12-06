@@ -25,3 +25,12 @@ class S3TestCase(TestCase):
             s3_instance.return_value = conn
             s3.bucket()
             s3_instance.create_bucket.assert_called_with(bucket)
+
+    def test_last_key(self):
+        with mock.patch("mysqlapi.api.management.commands.s3.bucket") as bucket_mock:
+            key = mock.Mock()
+            key.get_contents_as_string.return_value = "last_key"
+            bucket = mock.Mock()
+            bucket.get_key.return_value = key
+            bucket_mock.return_value = bucket
+            self.assertEqual("last_key", s3.last_key())
