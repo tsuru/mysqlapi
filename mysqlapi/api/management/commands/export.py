@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import NoArgsCommand
-from django.conf import settings
 
 from mysqlapi.api.database import export
+from mysqlapi.api.management.commands import s3
 
 
 class Command(NoArgsCommand):
@@ -15,13 +15,4 @@ class Command(NoArgsCommand):
         return u"Successfully exported!"
 
     def send_data(self, data):
-        from boto.s3.key import Key
-        from boto.s3.connection import S3Connection
-
-        conn = S3Connection(
-            settings.S3_ACCESS_KEY,
-            settings.S3_SECRET_KEY
-        )
-        bucket = conn.create_bucket(settings.S3_BUCKET)
-        key = Key(bucket)
-        key.set_contents_from_string(data)
+        s3.store_data(data)
