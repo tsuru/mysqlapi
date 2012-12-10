@@ -47,7 +47,7 @@ class ExportCommandTestCase(TestCase):
             s3.return_value = conn
             with mock.patch("boto.s3.key.Key"):
                 Command().send_data("data")
-                s3.create_bucket.assert_called_with(bucket)
+                s3.get_bucket.assert_called_with(bucket)
 
     def test_send_data(self):
         with mock.patch("boto.s3.connection.S3Connection") as s3con:

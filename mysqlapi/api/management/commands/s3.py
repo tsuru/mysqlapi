@@ -12,7 +12,7 @@ def connect():
 
 def bucket():
     conn = connect()
-    return conn.create_bucket(settings.S3_BUCKET)
+    return conn.get_bucket(settings.S3_BUCKET)
 
 
 def last_key():
