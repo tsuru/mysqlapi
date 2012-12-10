@@ -33,7 +33,8 @@ class DropUserViewTestCase(TestCase):
             request = RequestFactory().delete("/")
             response = drop_user(request, "fails", "hostname")
             self.assertEqual(500, response.status_code)
-            self.assertEqual("Operation DROP USER failed for 'fails'@'%'", response.content)
+            content = "Operation DROP USER failed for 'fails'@'%'"
+            self.assertEqual(content, response.content)
         finally:
             instance.delete()
 
@@ -60,7 +61,9 @@ class DropUserViewTestCase(TestCase):
             response = drop_user(request, "ciclops", "localhost")
             self.assertEqual(200, response.status_code)
 
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='%'")
+            sql = "select User, Host FROM mysql.user " +\
+                  "WHERE User='ciclops' AND Host='%'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertFalse(row)
         finally:
@@ -75,7 +78,9 @@ class DropUserViewTestCase(TestCase):
             request = RequestFactory().delete("/used")
             response = drop_user(request, "used", "127.0.0.1")
             self.assertEqual(200, response.status_code)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='used' AND Host='%'")
+            sql = "select User, Host FROM mysql.user " +\
+                  "WHERE User='used' AND Host='%'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNone(row)
         finally:

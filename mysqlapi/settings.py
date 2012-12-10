@@ -94,9 +94,6 @@ ROOT_URLCONF = "mysqlapi.urls"
 WSGI_APPLICATION = "wsgi.application"
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don"t forget to use absolute paths, not relative paths.
     os.path.join(ROOT, "templates"),
 )
 
@@ -150,7 +147,10 @@ LOGGING = {
 
 RESERVED_NAMES = ("mysql", "test", "information_schema", "mysqlapi")
 SHARED_SERVER = os.environ.get("MYSQLAPI_SHARED_SERVER")
-SHARED_SERVER_PUBLIC_HOST = os.environ.get("MYSQLAPI_SHARED_SERVER_PUBLIC_HOST", SHARED_SERVER)
+SHARED_SERVER_PUBLIC_HOST = os.environ.get(
+    "MYSQLAPI_SHARED_SERVER_PUBLIC_HOST",
+    SHARED_SERVER,
+)
 SHARED_USER = os.environ.get("MYSQLAPI_SHARED_USER", "root")
 SHARED_PASSWORD = os.environ.get("MYSQLAPI_SHARED_PASSWORD", "")
 

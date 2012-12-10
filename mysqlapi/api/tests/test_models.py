@@ -160,7 +160,7 @@ class InstanceTestCase(TestCase):
         field = Instance._meta.get_field_by_name("shared")[0]
         self.assertEqual(False, field.default)
 
-    def test_is_up_shold_return_true_when_instance_is_running_and_db_is_up(self):
+    def test_is_up_returns_true_when_instance_is_running_and_db_is_up(self):
         with mock.patch("mysqlapi.api.models.DatabaseManager.is_up") as is_up:
             is_up.return_value = True
             instance = Instance(name="foo", state="running")
@@ -208,18 +208,24 @@ class InstanceTestCase(TestCase):
 
 class CanonicalizeTestCase(unittest.TestCase):
 
-    def test_canonicalize_db_name_should_do_nothing_when_name_has_no_dash(self):
+    def test_canonicalize_db_name_dont_change_strings_without_dashes(self):
         canonicalized_name = canonicalize_db_name("foo_bar")
         self.assertEqual("foo_bar", canonicalized_name)
 
-    def test_canonicalize_db_name_should_replace_dash_with_underline_and_add_random_hash_in_end(self):
+    def test_canonicalize_db_name_replaces_dashes_with_underline(self):
         canonicalized_name = canonicalize_db_name("foo-bar")
-        self.assertEqual(canonicalized_name, "foo_bar{0}".format(hashlib.sha1("foo-bar").hexdigest()[:10]))
+        expected = "foo_bar{0}".\
+                   format(hashlib.sha1("foo-bar").hexdigest()[:10])
+        self.assertEqual(canonicalized_name, expected)
 
-    def test_canonicalize_db_name_should_replace_white_spaces_with_underlines(self):
+    def test_canonicalize_db_name_replaces_whitespaces_with_underline(self):
         canonicalized_name = canonicalize_db_name(" foo ")
-        self.assertEqual(canonicalized_name, "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10]))
+        expected = "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10])
+        self.assertEqual(canonicalized_name, expected)
 
-    def test_canonicalize_db_name_should_not_redo_its_work_when_called_twice(self):
-        canonicalized_name = canonicalize_db_name(canonicalize_db_name(" foo "))
-        self.assertEqual(canonicalized_name, "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10]))
+    def test_canonicalize_db_name_do_nothing_when_called_twice(self):
+        canonicalized_name = canonicalize_db_name(
+            canonicalize_db_name(" foo ")
+        )
+        expected = "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10])
+        self.assertEqual(canonicalized_name, expected)

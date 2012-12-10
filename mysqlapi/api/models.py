@@ -43,7 +43,12 @@ def generate_user(username):
 
 class DatabaseManager(object):
 
-    def __init__(self, name, host="localhost", user="root", password="", public_host=None):
+    def __init__(self,
+                 name,
+                 host="localhost",
+                 user="root",
+                 password="",
+                 public_host=None):
         self.name = canonicalize_db_name(name)
         self._host = host
         self.port = '3306'
@@ -59,7 +64,9 @@ class DatabaseManager(object):
     def create_database(self):
         self.conn.open()
         cursor = self.conn.cursor()
-        cursor.execute("CREATE DATABASE %s default character set utf8 default collate utf8_general_ci" % self.name)
+        sql = "CREATE DATABASE %s default character set utf8 " + \
+              "default collate utf8_general_ci"
+        cursor.execute(sql % self.name)
         self.conn.close()
 
     def drop_database(self):
@@ -73,7 +80,8 @@ class DatabaseManager(object):
         cursor = self.conn.cursor()
         username = generate_user(username)
         password = generate_password()
-        cursor.execute("grant all privileges on {0}.* to '{1}'@'%' identified by '{2}'".format(self.name, username, password))
+        sql = "grant all privileges on {0}.* to '{1}'@'%' identified by '{2}'"
+        cursor.execute(sql.format(self.name, username, password))
         self.conn.close()
         return username, password
 
@@ -84,7 +92,8 @@ class DatabaseManager(object):
         self.conn.close()
 
     def export(self):
-        return subprocess.check_output(["mysqldump", "-u", "root", "-d", self.name, "--compact"], stderr=subprocess.STDOUT)
+        cmd = ["mysqldump", "-u", "root", "-d", self.name, "--compact"]
+        return subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
     def is_up(self):
         try:
@@ -111,8 +120,13 @@ class Instance(models.Model):
 
     name = models.CharField(max_length=100, unique=True)
     ec2_id = models.CharField(max_length=100, null=True, blank=True)
-    state = models.CharField(max_length=50, default="pending", choices=STATE_CHOICES)
-    reason = models.CharField(max_length=1000, null=True, blank=True, default=None)
+    state = models.CharField(max_length=50,
+                             default="pending",
+                             choices=STATE_CHOICES)
+    reason = models.CharField(max_length=1000,
+                              null=True,
+                              blank=True,
+                              default=None)
     host = models.CharField(max_length=50, null=True, blank=True)
     port = models.CharField(max_length=5, default="3306")
     shared = models.BooleanField(default=False)
@@ -132,7 +146,11 @@ class Instance(models.Model):
             user = settings.SHARED_USER
             password = settings.SHARED_PASSWORD
             public_host = settings.SHARED_SERVER_PUBLIC_HOST
-        return DatabaseManager(self.name, host=host, user=user, password=password, public_host=public_host)
+        return DatabaseManager(self.name,
+                               host=host,
+                               user=user,
+                               password=password,
+                               public_host=public_host)
 
 
 def _create_shared_database(instance):
@@ -156,7 +174,8 @@ def _create_shared_database(instance):
 
 def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
-        raise DatabaseCreationException(instance, "Failed to create EC2 instance.")
+        raise DatabaseCreationException(instance,
+                                        "Failed to create EC2 instance.")
     instance.save()
     creator.enqueue(instance)
 

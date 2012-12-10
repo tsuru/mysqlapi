@@ -27,7 +27,8 @@ class S3TestCase(TestCase):
             s3_instance.create_bucket.assert_called_with(bucket)
 
     def test_last_key(self):
-        with mock.patch("mysqlapi.api.management.commands.s3.bucket") as bucket_mock:
+        m = "mysqlapi.api.management.commands.s3.bucket"
+        with mock.patch(m) as bucket_mock:
             key = mock.Mock()
             key.get_contents_as_string.return_value = "last_key"
             bucket = mock.Mock()
@@ -43,7 +44,8 @@ class S3TestCase(TestCase):
                 key.set_contents_from_string.assert_called_with("data")
 
     def test_get_data(self):
-        with mock.patch("mysqlapi.api.management.commands.s3.bucket") as bucket_mock:
+        m = "mysqlapi.api.management.commands.s3.bucket"
+        with mock.patch(m) as bucket_mock:
             key = mock.Mock()
             key.get_contents_as_string.return_value = "last_key"
             bucket = mock.Mock()

@@ -56,10 +56,14 @@ class DatabaseCreator(threading.Thread):
                 _instance_queue.put(instance)
                 continue
             if not self.ec2_client.authorize(instance):
-                self._error("Failed to authorize access to the instance.", instance)
+                self._error("Failed to authorize access to the instance.",
+                            instance)
                 continue
             try:
-                db = self.DatabaseManager(instance.name, host=instance.host, user=self.user, password=self.password)
+                db = self.DatabaseManager(instance.name,
+                                          host=instance.host,
+                                          user=self.user,
+                                          password=self.password)
                 db.create_database()
                 instance.save()
             except Exception as exc:

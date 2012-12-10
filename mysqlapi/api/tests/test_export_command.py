@@ -11,17 +11,18 @@ import subprocess
 class ExportCommandTestCase(TestCase):
     def test_export(self):
         with mock.patch("subprocess.check_output") as check_output:
-            with mock.patch("mysqlapi.api.management.commands.export.Command.send_data"):
+            m = "mysqlapi.api.management.commands.export.Command.send_data"
+            with mock.patch(m):
                 Command().handle_noargs()
-                check_output.assert_called_with(
-                    ["mysqldump", "-u", "root", "--quick", "--all-databases", "--compact"],
-                    stderr=subprocess.STDOUT
-                )
+                cmd = ["mysqldump", "-u", "root", "--quick",
+                       "--all-databases", "--compact"]
+                check_output.assert_called_with(cmd, stderr=subprocess.STDOUT)
 
     def test_export_should_send_data(self):
         with mock.patch("subprocess.check_output") as check_output:
             check_output.return_value = "data"
-            with mock.patch("mysqlapi.api.management.commands.export.Command.send_data") as send_data:
+            m = "mysqlapi.api.management.commands.export.Command.send_data"
+            with mock.patch(m) as send_data:
                 Command().handle_noargs()
                 send_data.assert_called_with("data")
 

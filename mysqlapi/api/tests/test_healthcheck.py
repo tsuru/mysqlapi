@@ -11,7 +11,8 @@ import mock
 class HealthcheckTestCase(TestCase):
 
     def setUp(self):
-        self.instance = Instance.objects.create(name="g8mysql", state="running")
+        self.instance = Instance.objects.create(name="g8mysql",
+                                                state="running")
 
     def tearDown(self):
         self.instance.delete()
@@ -36,7 +37,7 @@ class HealthcheckTestCase(TestCase):
             response = view.get(request, "g8mysql")
         self.assertEqual(500, response.status_code)
 
-    def test_healthcheck_calls_ec2_get_when_instance_is_running_and_returns_201(self):
+    def test_healthcheck_returns_201_when_ec2_instance_is_running(self):
         request = RequestFactory().get("/resources/g8mysql/status/")
         with mock.patch("mysqlapi.api.models.DatabaseManager.is_up") as is_up:
             is_up.return_value = True
@@ -46,7 +47,7 @@ class HealthcheckTestCase(TestCase):
             response = view.get(request, "g8mysql")
         self.assertEqual(204, response.status_code)
 
-    def test_healthcheck_does_not_calls_ec2_get_when_instance_is_pending_and_returns_202(self):
+    def test_healthcheck_doesnt_touch_ec2_when_instance_is_pending(self):
         self.instance.state = "pending"
         self.instance.save()
         request = RequestFactory().get("/resources/g8mysql/status/")

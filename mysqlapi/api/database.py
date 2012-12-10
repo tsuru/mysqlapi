@@ -5,7 +5,11 @@ import subprocess
 
 class Connection(object):
 
-    def __init__(self, hostname="localhost", username="", password="", database=""):
+    def __init__(self,
+                 hostname="localhost",
+                 username="",
+                 password="",
+                 database=""):
         self.hostname = hostname
         self.username = username
         self.password = password
@@ -14,7 +18,10 @@ class Connection(object):
 
     def open(self):
         if not self._connection:
-            self._connection = MySQLdb.connect(self.hostname, self.username, self.password, self.database)
+            self._connection = MySQLdb.connect(self.hostname,
+                                               self.username,
+                                               self.password,
+                                               self.database)
 
     def close(self):
         if self._connection:
@@ -26,4 +33,10 @@ class Connection(object):
 
 
 def export():
-    return subprocess.check_output(["mysqldump", "-u", "root", "--quick", "--all-databases", "--compact"], stderr=subprocess.STDOUT)
+    dump_cmd = ["mysqldump",
+                "-u",
+                "root",
+                "--quick",
+                "--all-databases",
+                "--compact"]
+    return subprocess.check_output(dump_cmd, stderr=subprocess.STDOUT)

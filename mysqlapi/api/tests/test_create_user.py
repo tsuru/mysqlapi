@@ -75,7 +75,9 @@ class CreateUserViewTestCase(TestCase):
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
             }
             self.assertDictEqual(expected, content)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='ciclops' AND Host='%'")
+            sql = "select User, Host FROM mysql.user " +\
+                  "WHERE User='ciclops' AND Host='%'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertEqual("ciclops", row[0])
         finally:
@@ -83,7 +85,7 @@ class CreateUserViewTestCase(TestCase):
             db.drop_user("ciclops", "%")
             instance.delete()
 
-    def test_create_user_should_successed_with_dashed_separated_database_name(self):
+    def test_create_user_canonicalizes_database_name(self):
         instance = Instance.objects.create(
             name=canonicalize_db_name("some-db"),
             shared=True,
@@ -127,7 +129,9 @@ class CreateUserViewTestCase(TestCase):
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
             }
             self.assertEqual(expected, content)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='%'")
+            sql = "select User, Host FROM mysql.user " +\
+                  "WHERE User='inside_out' AND Host='%'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
         finally:
@@ -156,7 +160,9 @@ class CreateUserViewTestCase(TestCase):
                 u"MYSQL_PASSWORD": content["MYSQL_PASSWORD"],
             }
             self.assertEqual(expected, content)
-            self.cursor.execute("select User, Host FROM mysql.user WHERE User='inside_out' AND Host='%'")
+            sql = "select User, Host FROM mysql.user " +\
+                  "WHERE User='inside_out' AND Host='%'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
         finally:
@@ -170,7 +176,7 @@ class CreateUserViewTestCase(TestCase):
         self.assertEqual(404, response.status_code)
         self.assertEqual("Instance not found", response.content)
 
-    def test_create_user_returns_precondition_failed_if_the_instance_is_pending(self):
+    def test_create_user_gives_precondition_failed_for_pending_instances(self):
         instance = Instance.objects.create(
             name="morning_on_earth",
             host="127.0.0.1",
@@ -181,6 +187,7 @@ class CreateUserViewTestCase(TestCase):
             request = RequestFactory().post("/", {"hostname": "192.168.1.1"})
             response = CreateUser.as_view()(request, "morning_on_earth")
             self.assertEqual(412, response.status_code)
-            self.assertEqual(u"You can't bind to this instance because it's not running.", response.content)
+            msg = u"You can't bind to this instance because it's not running."
+            self.assertEqual(msg, response.content)
         finally:
             instance.delete()

@@ -7,7 +7,8 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
 import crane_ec2
-from mysqlapi.api.models import create_database, DatabaseManager, Instance, canonicalize_db_name
+from mysqlapi.api.models import (create_database, DatabaseManager,
+                                 Instance, canonicalize_db_name)
 
 
 class CreateUser(View):
@@ -24,7 +25,8 @@ class CreateUser(View):
         except Instance.DoesNotExist:
             return HttpResponse("Instance not found", status=404)
         if instance.state != "running":
-            return HttpResponse(u"You can't bind to this instance because it's not running.", status=412)
+            msg = u"You can't bind to this instance because it's not running."
+            return HttpResponse(msg, status=412)
         db = instance.db_manager()
         try:
             username, password = db.create_user(name, hostname)
@@ -94,14 +96,17 @@ class DropDatabase(View):
         try:
             instance = Instance.objects.get(name=name)
         except Instance.DoesNotExist:
-            return HttpResponse("Can't drop database '%s'; database doesn't exist" % name, status=404)
+            msg = "Can't drop database '%s'; database doesn't exist" % name
+            return HttpResponse(msg, status=404)
         if instance.shared:
             db = instance.db_manager()
             db.drop_database()
-        elif self._client.unauthorize(instance) and self._client.terminate(instance):
+        elif self._client.unauthorize(instance) and \
+                self._client.terminate(instance):
             pass
         else:
-            return HttpResponse("Failed to terminate the instance.", status=500)
+            return HttpResponse("Failed to terminate the instance.",
+                                status=500)
         instance.delete()
         return HttpResponse("", status=200)
 

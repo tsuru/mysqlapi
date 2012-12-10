@@ -24,7 +24,8 @@ class ExportViewTestCase(TestCase):
         db.create_database()
         db.create_user("magneto", "%")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
-        expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
+        expected = """\
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `foo` (
   `test` varchar(255) DEFAULT NULL
@@ -43,7 +44,8 @@ CREATE TABLE `foo` (
         db.create_database()
         db.create_user("magneto", "%")
         self.cursor.execute("create table magneto.foo ( test varchar(255) );")
-        expected = """/*!40101 SET @saved_cs_client     = @@character_set_client */;
+        expected = """\
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `foo` (
   `test` varchar(255) DEFAULT NULL
@@ -61,7 +63,8 @@ CREATE TABLE `foo` (
         request = RequestFactory().get("/", {})
         response = export(request, "doesnotexists")
         self.assertEqual(500, response.status_code)
-        self.assertEqual("Unknown database 'doesnotexists' when selecting the database", response.content)
+        msg = "Unknown database 'doesnotexists' when selecting the database"
+        self.assertEqual(msg, response.content)
 
     def test_export_should_returns_405_when_method_is_not_get(self):
         request = RequestFactory().post("/")

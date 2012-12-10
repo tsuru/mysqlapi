@@ -5,10 +5,13 @@ import mock
 from django.conf import settings
 from django.test.client import RequestFactory
 
-from mysqlapi.api.creator import _instance_queue, reset_queue, set_model, start_creator
+from mysqlapi.api.creator import (_instance_queue, reset_queue,
+                                  set_model, start_creator)
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import (create_database, DatabaseManager, DatabaseCreationException,
-                                 Instance, InstanceAlreadyExists, InvalidInstanceName, canonicalize_db_name)
+from mysqlapi.api.models import (create_database, DatabaseManager,
+                                 DatabaseCreationException, Instance,
+                                 InstanceAlreadyExists, InvalidInstanceName,
+                                 canonicalize_db_name)
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
@@ -80,7 +83,9 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             self.assertEqual(201, response.status_code)
             self.assertEqual("", response.content)
             t.stop()
-            self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'ciclops'")
+            sql = "select SCHEMA_NAME from information_schema.SCHEMATA " + \
+                  "where SCHEMA_NAME = 'ciclops'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertEqual("ciclops", row[0])
         finally:
@@ -91,7 +96,8 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         try:
             cli = mocks.FakeEC2Client()
             t = start_creator(DatabaseManager, cli)
-            request = RequestFactory().post("/", {"name": "bowl", "service_host": "127.0.0.1"})
+            data = {"name": "bowl", "service_host": "127.0.0.1"}
+            request = RequestFactory().post("/", data)
             view = CreateDatabase()
             view._client = cli
             response = view.post(request)
@@ -101,7 +107,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         finally:
             self.cursor.execute("DROP DATABASE IF EXISTS bowl")
 
-    def test_create_database_function_sends_the_instance_in_the_creator_queue(self):
+    def test_create_database_sends_the_instance_to_the_queue(self):
         instance = Instance(
             ec2_id="i-00009",
             name="der_trommler",
@@ -113,7 +119,9 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             t = start_creator(DatabaseManager, ec2_client)
             create_database(instance, ec2_client)
             t.stop()
-            self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'der_trommler'")
+            sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+                  "where SCHEMA_NAME = 'der_trommler'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
             self.assertEqual("der_trommler", row[0])
@@ -122,7 +130,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             self.cursor.execute("DROP DATABASE IF EXISTS der_trommler")
             instance.delete()
 
-    def test_create_database_function_raises_exception_if_instance_fail_to_boot(self):
+    def test_create_database_raises_exception_when_instance_fail_to_boot(self):
         instance = Instance(name="seven_cities")
         ec2_client = mocks.FakeEC2Client()
         ec2_client.run = lambda instance: False
@@ -130,9 +138,10 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
             create_database(instance, ec2_client)
         self.assertEqual(u"Failed to create EC2 instance.", e.exception[1])
 
-    def test_create_database_terminates_the_instance_if_it_fails_to_create_the_database_and_save_instance_with_error_state(self):
+    def test_create_database_terminates_the_instance_when_cant_create_db(self):
         exc_msg = u"I've failed to create your database, sorry! :("
-        with mock.patch("mysqlapi.api.models.DatabaseManager.create_database") as c_database:
+        module = "mysqlapi.api.models.DatabaseManager.create_database"
+        with mock.patch(module) as c_database:
             c_database.side_effect = Exception(exc_msg)
             instance = Instance(
                 ec2_id="i-00009",
@@ -147,9 +156,14 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
                 t.stop()
                 self.assertIn("unauthorize instance home", ec2_client.actions)
                 self.assertIn("terminate instance home", ec2_client.actions)
-                index_unauthorize = ec2_client.actions.index("unauthorize instance home")
-                index_terminate = ec2_client.actions.index("terminate instance home")
-                assert index_unauthorize < index_terminate, "Should unauthorize before terminate."
+                index_unauthorize = ec2_client.actions.index(
+                    "unauthorize instance home"
+                )
+                index_terminate = ec2_client.actions.index(
+                    "terminate instance home"
+                )
+                msg = "Should unauthorize before terminate."
+                assert index_unauthorize < index_terminate, msg
                 self.assertIsNotNone(instance.pk)
                 self.assertEqual("error", instance.state)
                 self.assertEqual(exc_msg, instance.reason)
@@ -160,7 +174,8 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         try:
             cli = mocks.FakeEC2Client()
             t = start_creator(DatabaseManager, cli)
-            request = RequestFactory().post("/", {"name": "entre_nous", "service_host": "127.0.0.1"})
+            data = {"name": "entre_nous", "service_host": "127.0.0.1"}
+            request = RequestFactory().post("/", data)
             view = CreateDatabase()
             view._client = cli
             response = view.post(request)
@@ -170,13 +185,16 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         finally:
             self.cursor.execute("DROP DATABASE IF EXISTS entre_nous")
 
-    def test_create_database_with_dashed_separated_name_should_be_canonicalized(self):
+    def test_create_database_canonicalizes_the_name_of_the_database(self):
         settings.SHARED_SERVER = "127.0.0.1"
         request = RequestFactory().post("/", {"name": "foo-bar"})
         response = CreateDatabase().post(request)
-        instances_filter = Instance.objects.filter(name=canonicalize_db_name("foo-bar"))
+        instances_filter = Instance.objects.filter(
+            name=canonicalize_db_name("foo-bar")
+        )
         exists = instances_filter.exists()
-        self.cursor.execute("DROP DATABASE IF EXISTS {0}".format(canonicalize_db_name("foo-bar")))
+        sql = "DROP DATABASE IF EXISTS {0}"
+        self.cursor.execute(sql.format(canonicalize_db_name("foo-bar")))
         instances_filter[0].delete()
         self.assertEqual(201, response.status_code)
         self.assertTrue(exists)
@@ -208,7 +226,7 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
         settings.SHARED_SERVER = self.old_shared_server
         self.cursor.close()
 
-    def test_create_database_terminates_the_instance_if_it_fails_to_authorize_and_save_instance_with_error_state(self):
+    def test_create_database_terminates_the_instance_when_cant_authorize(self):
         instance = Instance(
             ec2_id="i-00009",
             name="home",
@@ -224,7 +242,8 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
             self.assertIn("terminate instance home", ec2_client.actions)
             self.assertIsNotNone(instance.pk)
             self.assertEqual("error", instance.state)
-            self.assertEqual("Failed to authorize access to the instance.", instance.reason)
+            reason = "Failed to authorize access to the instance."
+            self.assertEqual(reason, instance.reason)
         finally:
             instance.delete()
 
@@ -236,7 +255,9 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
         )
         try:
             create_database(instance)
-            self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'water'")
+            sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+                  "where SCHEMA_NAME = 'water'"
+            self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
             self.assertEqual("water", row[0])
@@ -257,13 +278,16 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
         canonical_name = canonicalize_db_name(instance.name)
         try:
             create_database(instance)
-            self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = '{0}'".format(canonical_name))
+            sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+                  "where SCHEMA_NAME = '{0}'"
+            self.cursor.execute(sql.format(canonical_name))
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
             self.assertEqual(canonical_name, row[0])
             self.assertIsNotNone(instance.pk)
         finally:
-            self.cursor.execute("DROP DATABASE IF EXISTS {0}".format(canonical_name))
+            sql = "DROP DATABASE IF EXISTS {0}"
+            self.cursor.execute(sql.format(canonical_name))
             instance.delete()
 
     def test_create_database_when_instance_already_exist(self):

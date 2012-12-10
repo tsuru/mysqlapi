@@ -37,11 +37,12 @@ class DropDatabaseViewTestCase(TestCase):
         db = DatabaseManager("fandango", settings.SHARED_SERVER)
         db.create_database()
 
-    def test_drop_should_returns_404_and_error_msg_in_body_when_the_instance_does_not_exist(self):
+    def test_drop_returns_404_and_error_msg_when_instance_does_not_exist(self):
         request = RequestFactory().delete("/")
         response = DropDatabase().delete(request, name="doesnotexists")
         self.assertEqual(404, response.status_code)
-        self.assertEqual("Can't drop database 'doesnotexists'; database doesn't exist", response.content)
+        msg = "Can't drop database 'doesnotexists'; database doesn't exist"
+        self.assertEqual(msg, response.content)
 
     def test_drop_should_returns_405_when_method_is_not_delete(self):
         request = RequestFactory().get("/")
@@ -75,7 +76,9 @@ class DropDatabaseViewTestCase(TestCase):
         request = RequestFactory().delete("/ciclops")
         resp = view.delete(request, "ciclops")
         self.assertEqual(200, resp.status_code)
-        self.assertEqual([u"unauthorize instance ciclops", u"terminate instance ciclops"], fake.actions)
+        actions = [u"unauthorize instance ciclops",
+                   u"terminate instance ciclops"]
+        self.assertEqual(actions, fake.actions)
 
     def test_drop_database_with_shared_server(self):
         settings.SHARED_SERVER = "127.0.0.1"
@@ -84,7 +87,9 @@ class DropDatabaseViewTestCase(TestCase):
         request = RequestFactory().delete("/fandango")
         resp = view.delete(request, "fandango")
         self.assertEqual(200, resp.status_code)
-        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = 'fandango'")
+        sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+              "where SCHEMA_NAME = 'fandango'"
+        self.cursor.execute(sql)
         row = self.cursor.fetchone()
         self.assertIsNone(row)
 
@@ -99,6 +104,8 @@ class DropDatabaseViewTestCase(TestCase):
         request = RequestFactory().delete("/xu-xu")
         resp = view.delete(request, "xu-xu")
         self.assertEqual(200, resp.status_code)
-        self.cursor.execute("select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = '{0}'".format(canonical_name))
+        sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+              "where SCHEMA_NAME = '{0}'"
+        self.cursor.execute(sql.format(canonical_name))
         row = self.cursor.fetchone()
         self.assertIsNone(row)
