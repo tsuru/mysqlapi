@@ -26,6 +26,9 @@ def store_data(data):
 
     key = Key(bucket(), uuid4().hex)
     key.set_contents_from_string(data)
+
+    last_key = Key(bucket(), "lastkey")
+    last_key.set_contents_from_string(key.name)
     return key
 
 

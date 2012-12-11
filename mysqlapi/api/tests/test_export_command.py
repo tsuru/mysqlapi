@@ -57,4 +57,4 @@ class ExportCommandTestCase(TestCase):
             with mock.patch("boto.s3.key.Key") as Key:
                 key = Key.return_value
                 Command().send_data("data")
-                key.set_contents_from_string.assert_called_with("data")
+                key.set_contents_from_string.assert_any_call("data")

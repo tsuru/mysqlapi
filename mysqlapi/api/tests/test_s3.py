@@ -41,9 +41,16 @@ class S3TestCase(TestCase):
             with mock.patch("boto.s3.key.Key") as Key:
                 key = Key.return_value
                 s3.store_data("data")
-                key.set_contents_from_string.assert_called_with("data")
+                key.set_contents_from_string.assert_any_call("data")
 
     def test_store_data_should_use_uuid_in_key_name(self):
+        with mock.patch("boto.s3.key.Key") as Key:
+            key = Key.return_value
+            with mock.patch("uuid.uuid4"):
+                s3.store_data("data")
+                key.set_contents_from_string.assert_called_with(Key().name)
+
+    def test_store_data_should_store_last_key(self):
         with mock.patch("mysqlapi.api.management.commands.s3.bucket"):
             with mock.patch("uuid.uuid4") as uuid4:
                 uuid4.return_value = mock.Mock(hex="uuid")
