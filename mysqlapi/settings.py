@@ -125,23 +125,13 @@ LOGGING = {
             "filters": ["require_debug_false"],
             "class": "django.utils.log.AdminEmailHandler",
         },
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": os.environ.get("MYSQLAPI_LOG_FILE", "debug.log"),
-        },
     },
     "loggers": {
         "django.request": {
-            "handlers": ["mail_admins", "file"],
+            "handlers": ["mail_admins"],
             "level": "ERROR",
             "propagate": True,
         },
-        "": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
-        }
     }
 }
 
