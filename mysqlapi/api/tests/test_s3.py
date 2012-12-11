@@ -43,6 +43,13 @@ class S3TestCase(TestCase):
                 s3.store_data("data")
                 key.set_contents_from_string.assert_called_with("data")
 
+    def test_store_data_should_use_uuid_in_key_name(self):
+        with mock.patch("mysqlapi.api.management.commands.s3.bucket"):
+            with mock.patch("uuid.uuid4") as uuid4:
+                uuid4.return_value = mock.Mock(hex="uuid")
+                key = s3.store_data("data")
+        self.assertEqual("uuid", key.name)
+
     def test_get_data(self):
         m = "mysqlapi.api.management.commands.s3.bucket"
         with mock.patch(m) as bucket_mock:

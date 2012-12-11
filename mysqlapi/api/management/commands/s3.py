@@ -22,9 +22,11 @@ def last_key():
 
 def store_data(data):
     from boto.s3.key import Key
+    from uuid import uuid4
 
-    key = Key(bucket())
+    key = Key(bucket(), uuid4().hex)
     key.set_contents_from_string(data)
+    return key
 
 
 def get_data():
