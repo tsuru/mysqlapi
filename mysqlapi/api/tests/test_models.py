@@ -6,8 +6,10 @@ import mock
 from django.conf import settings
 from django.db.models import BooleanField, CharField
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
+from mysqlapi.api import models
 
 
 class DatabaseManagerTestCase(unittest.TestCase):
@@ -229,3 +231,11 @@ class CanonicalizeTestCase(unittest.TestCase):
         )
         expected = "_foo_{0}".format(hashlib.sha1(" foo ").hexdigest()[:10])
         self.assertEqual(canonicalized_name, expected)
+
+
+class GeneratePasswordTestCase(unittest.TestCase):
+    @override_settings(SALT="salt")
+    def test_generate_password(self):
+        expected = hashlib.sha1("bla" + settings.SALT).hexdigest()
+        result = models.generate_password("bla")
+        self.assertEqual(expected, result)

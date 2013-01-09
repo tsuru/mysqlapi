@@ -2,7 +2,6 @@ import hashlib
 import os
 import re
 import subprocess
-import uuid
 
 import MySQLdb
 
@@ -29,13 +28,13 @@ class DatabaseCreationException(BaseException):
     pass
 
 
-def generate_password():
-    return hashlib.sha1(uuid.uuid4().hex).hexdigest()
+def generate_password(string):
+    return hashlib.sha1(string + settings.SALT).hexdigest()
 
 
 def generate_user(username):
     if len(username) > 16:
-        _username = username[:12] + generate_password()[:4]
+        _username = username[:12] + generate_password(username)[:4]
     else:
         _username = username
     return _username
@@ -79,7 +78,7 @@ class DatabaseManager(object):
         self.conn.open()
         cursor = self.conn.cursor()
         username = generate_user(username)
-        password = generate_password()
+        password = generate_password(username)
         sql = "grant all privileges on {0}.* to '{1}'@'%' identified by '{2}'"
         cursor.execute(sql.format(self.name, username, password))
         self.conn.close()
