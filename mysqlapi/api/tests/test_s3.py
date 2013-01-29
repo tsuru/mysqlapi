@@ -1,3 +1,7 @@
+# Copyright 2013 mysqlapi authors. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
 from unittest import TestCase
 from django.conf import settings
 from django.test.utils import override_settings
