@@ -14,13 +14,13 @@ MANAGERS = ADMINS
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "api.db",
-        "USER": "",
-        "PASSWORD": "",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("MYSQLAPI_DB_NAME", "mysqlapi"),
+        "USER": os.environ.get("MYSQLAPI_DB_USER", "root"),
+        "PASSWORD": os.environ.get("MYSQLAPI_DB_PASSWORD", ""),
         "HOST": os.environ.get("MYSQLAPI_HOST", "localhost"),
         "PORT": "",
-        "TEST_NAME": "test_api.db",
+        "TEST_NAME": "test_api",
     }
 }
 
