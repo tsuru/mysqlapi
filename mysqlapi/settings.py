@@ -163,4 +163,4 @@ S3_ACCESS_KEY = os.environ.get("TSURU_S3_ACCESS_KEY_ID")
 S3_SECRET_KEY = os.environ.get("TSURU_S3_SECRET_KEY")
 S3_BUCKET = os.environ.get("TSURU_S3_BUCKET")
 
-SALT = os.environ.get("SALT", "")
+SALT = os.environ.get("MYSQLAPI_SALT", "")
