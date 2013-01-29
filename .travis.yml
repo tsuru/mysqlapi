@@ -5,8 +5,7 @@ before_install:
 install:
   - pip install -qr test-requirements.txt
 script:
-  - python manage.py test
-  - flake8 .
+  - python manage.py test && flake8 .
 notifications:
   irc:
     channels:
