@@ -307,7 +307,6 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
                 create_database(instance)
         finally:
             instance.delete()
-            self.cursor.execute("DROP DATABASE IF EXISTS caravanx")
 
     # protecting against incosistency between the api database and mysql server
     # itself
