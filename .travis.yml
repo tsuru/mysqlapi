@@ -4,6 +4,7 @@ before_install:
   - sudo apt-get install `cat requirements.apt` -qq
 install:
   - pip install -qr test-requirements.txt
+  - mysql -u root -e 'create database mysqlapi'
 script:
   - python manage.py test && flake8 .
 notifications:
