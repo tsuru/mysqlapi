@@ -44,7 +44,7 @@ class CreateUserViewTestCase(TestCase):
         self.assertEqual("Hostname is missing", response.content)
 
     def test_create_user_should_returns_500_when_hostname_name_is_blank(self):
-        request = RequestFactory().post("/", {"hostname": ""})
+        request = RequestFactory().post("/", {"unit-host": ""})
         response = CreateUser.as_view()(request, "database")
         self.assertEqual(500, response.status_code)
         self.assertEqual("Hostname is empty", response.content)
@@ -68,7 +68,7 @@ class CreateUserViewTestCase(TestCase):
             state="running",
         )
         try:
-            request = RequestFactory().post("/", {"hostname": "192.168.1.1"})
+            request = RequestFactory().post("/", {"unit-host": "192.168.1.1"})
             response = CreateUser.as_view()(request, "ciclops")
             self.assertEqual(201, response.status_code)
             content = json.loads(response.content)
@@ -97,7 +97,7 @@ class CreateUserViewTestCase(TestCase):
             state="running",
         )
         settings.SHARED_SERVER = "localhost"
-        request = RequestFactory().post("/", {"hostname": "someurl.com"})
+        request = RequestFactory().post("/", {"unit-host": "someurl.com"})
         response = CreateUser.as_view()(request, "some-db")
         instance.delete()
         self.assertEqual(201, response.status_code)
@@ -109,7 +109,7 @@ class CreateUserViewTestCase(TestCase):
             state="running",
         )
         settings.SHARED_SERVER = "localhost"
-        request = RequestFactory().post("/", {"hostname": "some-ec2-url.com"})
+        request = RequestFactory().post("/", {"unit-host": "some-ec2-url.com"})
         response = CreateUser.as_view()(request, "some_db")
         instance.delete()
         self.assertEqual(201, response.status_code)
@@ -122,7 +122,7 @@ class CreateUserViewTestCase(TestCase):
             state="running",
         )
         try:
-            request = RequestFactory().post("/", {"hostname": "192.168.1.10"})
+            request = RequestFactory().post("/", {"unit-host": "192.168.1.10"})
             response = CreateUser.as_view()(request, "inside_out")
             self.assertEqual(201, response.status_code)
             content = json.loads(response.content)
@@ -153,7 +153,7 @@ class CreateUserViewTestCase(TestCase):
             state="running",
         )
         try:
-            request = RequestFactory().post("/", {"hostname": "192.168.1.10"})
+            request = RequestFactory().post("/", {"unit-host": "192.168.1.10"})
             response = CreateUser.as_view()(request, "inside_out")
             self.assertEqual(201, response.status_code)
             content = json.loads(response.content)
@@ -176,7 +176,7 @@ class CreateUserViewTestCase(TestCase):
             instance.delete()
 
     def test_create_user_returns_404_if_the_instance_does_not_exist(self):
-        request = RequestFactory().post("/", {"hostname": "12.12.12.12"})
+        request = RequestFactory().post("/", {"unit-host": "12.12.12.12"})
         response = CreateUser.as_view()(request, "idioglossia")
         self.assertEqual(404, response.status_code)
         self.assertEqual("Instance not found", response.content)
@@ -189,7 +189,7 @@ class CreateUserViewTestCase(TestCase):
             state="pending",
         )
         try:
-            request = RequestFactory().post("/", {"hostname": "192.168.1.1"})
+            request = RequestFactory().post("/", {"unit-host": "192.168.1.1"})
             response = CreateUser.as_view()(request, "morning_on_earth")
             self.assertEqual(412, response.status_code)
             msg = u"You can't bind to this instance because it's not running."

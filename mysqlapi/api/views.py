@@ -20,9 +20,9 @@ class CreateUser(View):
 
     def post(self, request, name, *args, **kwargs):
         name = canonicalize_db_name(name)
-        if not "hostname" in request.POST:
+        if not "unit-host" in request.POST:
             return HttpResponse("Hostname is missing", status=500)
-        hostname = request.POST.get("hostname", None)
+        hostname = request.POST.get("unit-host", None)
         if not hostname:
             return HttpResponse("Hostname is empty", status=500)
         try:
