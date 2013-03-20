@@ -65,16 +65,16 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
 
     def test_create_database_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
-        view = CreateDatabase()
-        response = view.dispatch(request)
+        view = CreateDatabase.as_view()
+        response = view(request)
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().put("/")
-        response = view.dispatch(request)
+        response = view(request)
         self.assertEqual(405, response.status_code)
 
         request = RequestFactory().delete("/")
-        response = view.dispatch(request)
+        response = view(request)
         self.assertEqual(405, response.status_code)
 
     def test_create_database_ec2(self):
