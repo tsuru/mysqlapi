@@ -26,12 +26,12 @@ In order to have mysql API ready to receive requests, we need some bootstrap stu
 
 First export the django settings variable:
 
-    $> tsuru env-set mysql-api DJANGO_SETTINGS_MODULE=mysqlapi.settings
+    $> tsuru env-set --app mysql-api DJANGO_SETTINGS_MODULE=mysqlapi.settings
 
 Now gunicorn is able to run with our wsgi.py configuration.
 After that, we need to run syncdb:
 
-    $> tsuru run mysql-api python manage.py syncdb --noinput
+    $> tsuru run --app mysql-api python manage.py syncdb --noinput
 
 Now we're ready to move on.
 
@@ -53,12 +53,12 @@ Shared Configuration
 
 To run the API in shared mode, you'll need some setup. First export the needed variables:
 
-    $> tsuru env-set mysql-api MYSQLAPI_SHARED_SERVER=mysqlhost.com
+    $> tsuru env-set --app mysql-api MYSQLAPI_SHARED_SERVER=mysqlhost.com
 
 If the shared mysql database is installed in the sabe vm that the app is, you can use `localhost` for `MYSQLAPI_SHARED_SERVER`,
 but you'll also need to set up a externally accessible endpoint to be used by the apps that are using the service:
 
-    $> tsuru env-set mysql-api MYSQLAPI_SHARED_SERVER_PUBLIC_HOST=publichost.com
+    $> tsuru env-set --app mysql-api MYSQLAPI_SHARED_SERVER_PUBLIC_HOST=publichost.com
 
 Try your configuration
 ----------------------
