@@ -60,6 +60,9 @@ but you'll also need to set up a externally accessible endpoint to be used by th
 
     $> tsuru env-set --app mysql-api MYSQLAPI_SHARED_SERVER_PUBLIC_HOST=publichost.com
 
+** Important: if your tsuru setup is using ELB, you shouldn't use it's address here, the LB keeps the connections alive, what will
+cause mysql to eventually fail, you should use your application unit address.
+
 Try your configuration
 ----------------------
 
