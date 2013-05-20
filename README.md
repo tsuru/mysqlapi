@@ -31,7 +31,7 @@ First export the django settings variable:
 Now gunicorn is able to run with our wsgi.py configuration.
 After that, we need to run syncdb:
 
-    $> tsuru run --app mysql-api python manage.py syncdb --noinput
+    $> tsuru run --app mysql-api "python manage.py syncdb --noinput"
 
 Now we're ready to move on.
 
