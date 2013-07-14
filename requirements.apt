@@ -1,2 +1,3 @@
 python-dev
 libmysqlclient-dev
+libevent-dev
