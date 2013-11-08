@@ -157,8 +157,6 @@ EC2_AMI = os.environ.get("MYSQLAPI_EC2_AMI")
 EC2_KEY_NAME = os.environ.get("MYSQLAPI_EC2_KEY_NAME")
 EC2_POLL_INTERVAL = int(os.environ.get("MYSQLAPI_EC2_POLL_INTERVAL", 10))
 
-TEST_RUNNER = 'mysqlapi.runner.DiscoveryRunner'
-
 S3_ACCESS_KEY = os.environ.get("TSURU_S3_ACCESS_KEY_ID")
 S3_SECRET_KEY = os.environ.get("TSURU_S3_SECRET_KEY")
 S3_BUCKET = os.environ.get("TSURU_S3_BUCKET")
