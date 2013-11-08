@@ -4,10 +4,10 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
+import json
 import subprocess
 
 from django.http import HttpResponse
-from django.utils import simplejson
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
@@ -44,7 +44,7 @@ class CreateUser(View):
             "MYSQL_USER": username,
             "MYSQL_PASSWORD": password,
         }
-        return HttpResponse(simplejson.dumps(config), status=201)
+        return HttpResponse(json.dumps(config), status=201)
 
 
 class CreateDatabase(View):
