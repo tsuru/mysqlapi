@@ -38,7 +38,7 @@ class DropUserViewTestCase(TestCase):
             request = RequestFactory().delete("/")
             response = drop_user(request, "fails", "hostname")
             self.assertEqual(500, response.status_code)
-            content = "Operation DROP USER failed for 'fails'@'%'"
+            content = "Operation DROP USER failed for 'fails'@'hostname'"
             self.assertEqual(content, response.content)
         finally:
             instance.delete()

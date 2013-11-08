@@ -81,13 +81,13 @@ class CreateUserViewTestCase(TestCase):
             }
             self.assertDictEqual(expected, content)
             sql = "select User, Host FROM mysql.user " +\
-                  "WHERE User='ciclops' AND Host='%'"
+                  "WHERE User='ciclops' AND Host='192.168.1.1'"
             self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertEqual("ciclops", row[0])
         finally:
             db = DatabaseManager("ciclops")
-            db.drop_user("ciclops", "%")
+            db.drop_user("ciclops", "192.168.1.1")
             instance.delete()
 
     def test_create_user_canonicalizes_database_name(self):
@@ -135,13 +135,13 @@ class CreateUserViewTestCase(TestCase):
             }
             self.assertEqual(expected, content)
             sql = "select User, Host FROM mysql.user " +\
-                  "WHERE User='inside_out' AND Host='%'"
+                  "WHERE User='inside_out' AND Host='192.168.1.10'"
             self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
         finally:
             db = DatabaseManager("inside_out")
-            db.drop_user("inside_out", "%")
+            db.drop_user("inside_out", "192.168.1.10")
             instance.delete()
 
     def test_create_user_in_shared_instance_with_public_host(self):
@@ -166,13 +166,13 @@ class CreateUserViewTestCase(TestCase):
             }
             self.assertEqual(expected, content)
             sql = "select User, Host FROM mysql.user " +\
-                  "WHERE User='inside_out' AND Host='%'"
+                  "WHERE User='inside_out' AND Host='192.168.1.10'"
             self.cursor.execute(sql)
             row = self.cursor.fetchone()
             self.assertIsNotNone(row)
         finally:
             db = DatabaseManager("inside_out")
-            db.drop_user("inside_out", "%")
+            db.drop_user("inside_out", "192.168.1.10")
             instance.delete()
 
     def test_create_user_returns_404_if_the_instance_does_not_exist(self):
