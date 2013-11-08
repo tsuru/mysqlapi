@@ -83,7 +83,8 @@ class DatabaseManager(object):
         cursor = self.conn.cursor()
         username = generate_user(username)
         password = generate_password(username)
-        sql = "grant all privileges on {0}.* to '{1}'@'{2}' identified by '{3}'"
+        sql = ("grant all privileges on {0}.* to '{1}'@'{2}'"
+               " identified by '{3}'")
         cursor.execute(sql.format(self.name, username, host, password))
         self.conn.close()
         return username, password
