@@ -136,9 +136,7 @@ class Instance(models.Model):
     shared = models.BooleanField(default=False)
 
     def is_up(self):
-        if self.state == "running" and self.db_manager().is_up():
-            return True
-        return False
+        return self.state == "running" and self.db_manager().is_up()
 
     def db_manager(self):
         host = self.host
