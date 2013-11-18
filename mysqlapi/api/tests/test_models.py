@@ -5,19 +5,19 @@
 # license that can be found in the LICENSE file.
 
 import hashlib
-import unittest
 import mock
 
 from django.conf import settings
-from django.db.models import BooleanField, CharField
+from django.db.models import BooleanField, CharField, ForeignKey, IntegerField
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
+from mysqlapi.api.models import (DatabaseManager, Instance,
+                                 ProvisionedInstance, canonicalize_db_name)
 from mysqlapi.api import models
 
 
-class DatabaseManagerTestCase(unittest.TestCase):
+class DatabaseManagerTestCase(TestCase):
 
     def test_init_should_canonicalize_name_property(self):
         db = DatabaseManager(
@@ -213,7 +213,39 @@ class InstanceTestCase(TestCase):
         self.assertEqual("10.10.10.10", db.public_host)
 
 
-class CanonicalizeTestCase(unittest.TestCase):
+class ProvisionedInstanceTestCase(TestCase):
+
+    def test_instance(self):
+        field = ProvisionedInstance._meta.get_field_by_name("instance")[0]
+        self.assertIsInstance(field, ForeignKey)
+        self.assertEqual(Instance, field.related.parent_model)
+        self.assertTrue(field.null)
+
+    def test_host(self):
+        field = ProvisionedInstance._meta.get_field_by_name("host")[0]
+        self.assertIsInstance(field, CharField)
+        self.assertEqual(500, field.max_length)
+
+    def test_port(self):
+        field = ProvisionedInstance._meta.get_field_by_name("port")[0]
+        self.assertIsInstance(field, IntegerField)
+        self.assertEqual(3306, field.default)
+
+    def test_admin_user(self):
+        field = ProvisionedInstance._meta.get_field_by_name("admin_user")[0]
+        self.assertIsInstance(field, CharField)
+        self.assertEqual(255, field.max_length)
+        self.assertEqual("root", field.default)
+
+    def test_admin_password(self):
+        r = ProvisionedInstance._meta.get_field_by_name("admin_password")
+        field = r[0]
+        self.assertIsInstance(field, CharField)
+        self.assertEqual(255, field.max_length)
+        self.assertTrue(field.blank)
+
+
+class CanonicalizeTestCase(TestCase):
 
     def test_canonicalize_db_name_dont_change_strings_without_dashes(self):
         canonicalized_name = canonicalize_db_name("foo_bar")
@@ -238,7 +270,7 @@ class CanonicalizeTestCase(unittest.TestCase):
         self.assertEqual(canonicalized_name, expected)
 
 
-class GeneratePasswordTestCase(unittest.TestCase):
+class GeneratePasswordTestCase(TestCase):
     @override_settings(SALT="salt")
     def test_generate_password(self):
         expected = hashlib.sha1("bla" + settings.SALT).hexdigest()

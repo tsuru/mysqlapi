@@ -155,6 +155,14 @@ class Instance(models.Model):
                                public_host=public_host)
 
 
+class ProvisionedInstance(models.Model):
+    instance = models.ForeignKey(Instance, null=True, blank=True)
+    host = models.CharField(max_length=500)
+    port = models.IntegerField(default=3306)
+    admin_user = models.CharField(max_length=255, default="root")
+    admin_password = models.CharField(max_length=255, blank=True)
+
+
 def _create_shared_database(instance):
     db = DatabaseManager(
         name=instance.name,
