@@ -252,7 +252,7 @@ class ProvisionedInstanceTestCase(TestCase):
                                  admin_user="root",
                                  admin_password="root")
         with mock.patch("mysqlapi.api.models.DatabaseManager") as dm:
-            manager = pi._manager()
+            pi._manager()
             dm.assert_called_with(name="mydb", host="10.10.10.10", port=3306,
                                   user="root", password="root")
 
@@ -288,7 +288,7 @@ class ProvisionedInstanceTestCase(TestCase):
         pi.save()
         self.addCleanup(pi.delete)
         db_manager = mock.Mock()
-        db_manager.create_database.side_effect = TypeError("something went wrong")
+        db_manager.create_database.side_effect = TypeError("blow up")
         pi._db_manager = db_manager
         instance = Instance(name="hibria")
         with self.assertRaises(DatabaseCreationException):

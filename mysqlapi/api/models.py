@@ -231,6 +231,7 @@ def _create_shared_database(instance):
 def _create_from_pool(instance):
     pass
 
+
 def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
         raise DatabaseCreationException(instance,
