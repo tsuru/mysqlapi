@@ -162,6 +162,48 @@ class ProvisionedInstance(models.Model):
     admin_user = models.CharField(max_length=255, default="root")
     admin_password = models.CharField(max_length=255, blank=True)
 
+    def _manager(self, name=None):
+        if not hasattr(self, "_db_manager"):
+            self._db_manager = DatabaseManager(name=self.instance.name,
+                                               host=self.host,
+                                               port=self.port,
+                                               user=self.admin_user,
+                                               password=self.admin_password)
+        return self._db_manager
+
+    def alloc(self, instance):
+        if self.instance:
+            raise TypeError("This instance is not available")
+        self.instance = instance
+        try:
+            self._manager().create_database()
+        except Exception as exc:
+            raise DatabaseCreationException(*exc.args)
+        instance.host = self.host
+        instance.port = str(self.port)
+        instance.shared = False
+        instance.ec2_id = None
+        instance.state = "running"
+        instance.save()
+        self.save()
+
+    def free(self):
+        pass
+
+
+def create_database(instance, ec2_client=None):
+    instance.name = canonicalize_db_name(instance.name)
+    if instance.name in settings.RESERVED_NAMES:
+        raise InvalidInstanceName(name=instance.name)
+    if Instance.objects.filter(name=instance.name):
+        raise InstanceAlreadyExists(name=instance.name)
+    if settings.SHARED_SERVER:
+        return _create_shared_database(instance)
+    elif settings.USE_POOL:
+        return _create_from_pool(instance)
+    else:
+        return _create_dedicate_database(instance, ec2_client)
+
 
 def _create_shared_database(instance):
     db = DatabaseManager(
@@ -182,24 +224,15 @@ def _create_shared_database(instance):
     instance.save()
 
 
+def _create_from_pool(instance):
+    pass
+
 def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
         raise DatabaseCreationException(instance,
                                         "Failed to create EC2 instance.")
     instance.save()
     creator.enqueue(instance)
-
-
-def create_database(instance, ec2_client=None):
-    instance.name = canonicalize_db_name(instance.name)
-    if instance.name in settings.RESERVED_NAMES:
-        raise InvalidInstanceName(name=instance.name)
-    if Instance.objects.filter(name=instance.name):
-        raise InstanceAlreadyExists(name=instance.name)
-    if settings.SHARED_SERVER:
-        return _create_shared_database(instance)
-    else:
-        return _create_dedicate_database(instance, ec2_client)
 
 
 def canonicalize_db_name(name):

@@ -12,8 +12,9 @@ from django.db.models import BooleanField, CharField, ForeignKey, IntegerField
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from mysqlapi.api.models import (DatabaseManager, Instance,
-                                 ProvisionedInstance, canonicalize_db_name)
+from mysqlapi.api.models import (DatabaseCreationException, DatabaseManager,
+                                 Instance, ProvisionedInstance,
+                                 canonicalize_db_name)
 from mysqlapi.api import models
 
 
@@ -243,6 +244,66 @@ class ProvisionedInstanceTestCase(TestCase):
         self.assertIsInstance(field, CharField)
         self.assertEqual(255, field.max_length)
         self.assertTrue(field.blank)
+
+    def test_manager(self):
+        pi = ProvisionedInstance(instance=Instance(name="mydb"),
+                                 host="10.10.10.10",
+                                 port=3306,
+                                 admin_user="root",
+                                 admin_password="root")
+        with mock.patch("mysqlapi.api.models.DatabaseManager") as dm:
+            manager = pi._manager()
+            dm.assert_called_with(name="mydb", host="10.10.10.10", port=3306,
+                                  user="root", password="root")
+
+    def test_manager_already_defined(self):
+        pi = ProvisionedInstance()
+        pi._db_manager = "something not real"
+        self.assertEqual("something not real", pi._manager())
+
+    def test_alloc(self):
+        pi = ProvisionedInstance(host="localhost",
+                                 admin_user="root",
+                                 admin_password="")
+        pi.save()
+        self.addCleanup(pi.delete)
+        db_manager = mock.Mock()
+        pi._db_manager = db_manager
+        instance = Instance(name="hibria")
+        pi.alloc(instance)
+        self.assertIsNotNone(instance.pk)
+        self.assertIsNone(instance.ec2_id)
+        self.assertFalse(instance.shared)
+        self.assertEqual("running", instance.state)
+        self.assertEqual("localhost", instance.host)
+        self.assertEqual("3306", instance.port)
+        self.assertEqual(instance, pi.instance)
+        db_manager.create_database.assert_called()
+
+    def test_alloc_create_database_failure(self):
+        pi = ProvisionedInstance(host="localhost",
+                                 admin_user="root",
+                                 admin_password="")
+        pi.save()
+        self.addCleanup(pi.delete)
+        db_manager = mock.Mock()
+        db_manager.create_database.side_effect = TypeError("something went wrong")
+        pi._db_manager = db_manager
+        instance = Instance(name="hibria")
+        with self.assertRaises(DatabaseCreationException):
+            pi.alloc(instance)
+        self.assertIsNone(instance.pk)
+
+    def test_alloc_already_allocated(self):
+        pi = ProvisionedInstance(instance=Instance(name="mydb"),
+                                 host="10.10.10.10",
+                                 port=3306,
+                                 admin_user="root",
+                                 admin_password="root")
+        with self.assertRaises(TypeError) as cm:
+            pi.alloc(Instance(name="yourdb"))
+        exc = cm.exception
+        self.assertEqual("This instance is not available", exc.args[0])
 
 
 class CanonicalizeTestCase(TestCase):
