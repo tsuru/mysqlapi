@@ -148,7 +148,7 @@ SHARED_SERVER_PUBLIC_HOST = os.environ.get(
 SHARED_USER = os.environ.get("MYSQLAPI_SHARED_USER", "root")
 SHARED_PASSWORD = os.environ.get("MYSQLAPI_SHARED_PASSWORD", "")
 
-USE_POOL = bool(os.environ.get("MYSQLAPI_USE_POOL"), False)
+USE_POOL = bool(os.environ.get("MYSQLAPI_USE_POOL", False))
 
 EC2_ENDPOINT = os.environ.get("MYSQLAPI_EC2_ENDPOINT")
 EC2_PORT = os.environ.get("MYSQLAPI_EC2_PORT")
