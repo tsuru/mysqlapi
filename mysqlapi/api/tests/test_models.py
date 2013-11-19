@@ -319,6 +319,7 @@ class ProvisionedInstanceTestCase(TestCase):
         self.addCleanup(instance.delete)
         pi.dealloc()
         self.assertIsNone(pi.instance)
+        self.assertEqual("stopped", instance.state)
         db_manager.drop_database.assert_called()
 
     def test_dealloc_already_freed(self):

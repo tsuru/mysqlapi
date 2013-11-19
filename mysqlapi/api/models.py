@@ -191,6 +191,7 @@ class ProvisionedInstance(models.Model):
         if not self.instance:
             raise TypeError("This instance is not allocated")
         self._manager().drop_database()
+        self.instance.state = "stopped"
         self.instance = None
         self.save()
 
