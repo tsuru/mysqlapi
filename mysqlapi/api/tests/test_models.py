@@ -271,6 +271,7 @@ class ProvisionedInstanceTestCase(TestCase):
         pi._db_manager = db_manager
         instance = Instance(name="hibria")
         pi.alloc(instance)
+        self.addCleanup(instance.delete)
         self.assertIsNotNone(instance.pk)
         self.assertIsNone(instance.ec2_id)
         self.assertFalse(instance.shared)
@@ -304,6 +305,31 @@ class ProvisionedInstanceTestCase(TestCase):
             pi.alloc(Instance(name="yourdb"))
         exc = cm.exception
         self.assertEqual("This instance is not available", exc.args[0])
+
+    def test_dealloc(self):
+        pi = ProvisionedInstance(host="localhost",
+                                 admin_user="root",
+                                 admin_password="")
+        pi.save()
+        self.addCleanup(pi.delete)
+        db_manager = mock.Mock()
+        pi._db_manager = db_manager
+        instance = Instance(name="hibria")
+        pi.alloc(instance)
+        self.addCleanup(instance.delete)
+        pi.dealloc()
+        self.assertIsNone(pi.instance)
+        db_manager.drop_database.assert_called()
+
+    def test_dealloc_already_freed(self):
+        pi = ProvisionedInstance(host="10.10.10.10",
+                                 port=3306,
+                                 admin_user="root",
+                                 admin_password="root")
+        with self.assertRaises(TypeError) as cm:
+            pi.dealloc()
+        exc = cm.exception
+        self.assertEqual("This instance is not allocated", exc.args[0])
 
 
 class CanonicalizeTestCase(TestCase):

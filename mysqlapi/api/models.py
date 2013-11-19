@@ -187,8 +187,12 @@ class ProvisionedInstance(models.Model):
         instance.save()
         self.save()
 
-    def free(self):
-        pass
+    def dealloc(self):
+        if not self.instance:
+            raise TypeError("This instance is not allocated")
+        self._manager().drop_database()
+        self.instance = None
+        self.save()
 
 
 def create_database(instance, ec2_client=None):
