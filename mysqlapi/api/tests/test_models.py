@@ -12,7 +12,7 @@ from django.db.models import BooleanField, CharField, ForeignKey, IntegerField
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from mysqlapi.api.models import (DatabaseCreationException, DatabaseManager,
+from mysqlapi.api.models import (DatabaseCreationError, DatabaseManager,
                                  Instance, ProvisionedInstance,
                                  canonicalize_db_name)
 from mysqlapi.api import models
@@ -291,7 +291,7 @@ class ProvisionedInstanceTestCase(TestCase):
         db_manager.create_database.side_effect = TypeError("blow up")
         pi._db_manager = db_manager
         instance = Instance(name="hibria")
-        with self.assertRaises(DatabaseCreationException):
+        with self.assertRaises(DatabaseCreationError):
             pi.alloc(instance)
         self.assertIsNone(instance.pk)
 

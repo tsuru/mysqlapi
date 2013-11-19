@@ -14,7 +14,7 @@ from mysqlapi.api.creator import (_instance_queue, reset_queue,
                                   set_model, start_creator)
 from mysqlapi.api.database import Connection
 from mysqlapi.api.models import (create_database, DatabaseManager,
-                                 DatabaseCreationException, Instance,
+                                 DatabaseCreationError, Instance,
                                  InstanceAlreadyExists, InvalidInstanceName,
                                  canonicalize_db_name)
 from mysqlapi.api.tests import mocks
@@ -139,7 +139,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         instance = Instance(name="seven_cities")
         ec2_client = mocks.FakeEC2Client()
         ec2_client.run = lambda instance: False
-        with self.assertRaises(DatabaseCreationException) as e:
+        with self.assertRaises(DatabaseCreationError) as e:
             create_database(instance, ec2_client)
         self.assertEqual(u"Failed to create EC2 instance.", e.exception[1])
 

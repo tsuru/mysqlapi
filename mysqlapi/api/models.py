@@ -28,7 +28,7 @@ class InstanceAlreadyExists(Exception):
         self.args = [u"Instance %s already exists." % name]
 
 
-class DatabaseCreationException(BaseException):
+class DatabaseCreationError(BaseException):
     pass
 
 
@@ -178,7 +178,7 @@ class ProvisionedInstance(models.Model):
         try:
             self._manager().create_database()
         except Exception as exc:
-            raise DatabaseCreationException(*exc.args)
+            raise DatabaseCreationError(*exc.args)
         instance.host = self.host
         instance.port = str(self.port)
         instance.shared = False
@@ -235,7 +235,7 @@ def _create_from_pool(instance):
 
 def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
-        raise DatabaseCreationException(instance,
+        raise DatabaseCreationError(instance,
                                         "Failed to create EC2 instance.")
     instance.save()
     creator.enqueue(instance)
