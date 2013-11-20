@@ -236,7 +236,7 @@ def _create_from_pool(instance):
 def _create_dedicate_database(instance, ec2_client):
     if not ec2_client.run(instance):
         raise DatabaseCreationError(instance,
-                                        "Failed to create EC2 instance.")
+                                    "Failed to create EC2 instance.")
     instance.save()
     creator.enqueue(instance)
 
