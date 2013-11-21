@@ -221,6 +221,7 @@ class ProvisionedInstanceTestCase(TestCase):
         self.assertIsInstance(field, ForeignKey)
         self.assertEqual(Instance, field.related.parent_model)
         self.assertTrue(field.null)
+        self.assertTrue(field.unique)
 
     def test_host(self):
         field = ProvisionedInstance._meta.get_field_by_name("host")[0]

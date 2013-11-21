@@ -157,7 +157,7 @@ class Instance(models.Model):
 
 
 class ProvisionedInstance(models.Model):
-    instance = models.ForeignKey(Instance, null=True, blank=True)
+    instance = models.ForeignKey(Instance, null=True, blank=True, unique=True)
     host = models.CharField(max_length=500)
     port = models.IntegerField(default=3306)
     admin_user = models.CharField(max_length=255, default="root")
