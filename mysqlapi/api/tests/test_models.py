@@ -191,6 +191,24 @@ class InstanceTestCase(TestCase):
         self.assertEqual("root", db.conn.username)
         self.assertEqual("", db.conn.password)
 
+    def test_db_manager_provisioned_instance(self):
+        instance = Instance(name="lost")
+        pi = ProvisionedInstance.objects.create(host="127.0.0.1",
+                                                port=3306,
+                                                admin_user="root",
+                                                admin_password="")
+        self.addCleanup(pi.delete)
+        pi.alloc(instance)
+        self.addCleanup(pi.dealloc)
+        pi.admin_user = "notroot"
+        pi.admin_password = "12345"
+        pi.save()
+        db = instance.db_manager()
+        self.assertEqual(instance.host, db.conn.hostname)
+        self.assertEqual(instance.port, db.conn.port)
+        self.assertEqual(pi.admin_user, db.conn.username)
+        self.assertEqual(pi.admin_password, db.conn.password)
+
     def test_db_manager_shared_instance(self):
         settings.SHARED_SERVER = "20.20.20.20"
         settings.SHARED_USER = "fsouza"

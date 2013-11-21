@@ -56,7 +56,7 @@ class DatabaseManager(object):
         self.name = canonicalize_db_name(name)
         self._host = host
         self.port = port
-        self.conn = Connection(self._host, user, password, "")
+        self.conn = Connection(self._host, self.port, user, password, "")
         self._public_host = public_host
 
     @property
@@ -141,6 +141,7 @@ class Instance(models.Model):
 
     def db_manager(self):
         host = self.host
+        port = self.port
         user = "root"
         password = ""
         public_host = None
@@ -149,8 +150,13 @@ class Instance(models.Model):
             user = settings.SHARED_USER
             password = settings.SHARED_PASSWORD
             public_host = settings.SHARED_SERVER_PUBLIC_HOST
+        elif ProvisionedInstance.objects.filter(instance=self).exists():
+            pi = ProvisionedInstance.objects.get(instance=self)
+            user = pi.admin_user
+            password = pi.admin_password
         return DatabaseManager(self.name,
                                host=host,
+                               port=port,
                                user=user,
                                password=password,
                                public_host=public_host)
