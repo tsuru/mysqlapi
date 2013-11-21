@@ -9,7 +9,8 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 
 from mysqlapi.api.database import Connection
-from mysqlapi.api.models import DatabaseManager, Instance, canonicalize_db_name
+from mysqlapi.api.models import (DatabaseManager, Instance,
+                                 ProvisionedInstance, canonicalize_db_name)
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import DropDatabase
 
@@ -35,7 +36,7 @@ class DropDatabaseViewTestCase(TestCase):
         Instance.objects.all().delete()
 
     def create_ciclops(self):
-        Instance.objects.create(name="ciclops")
+        Instance.objects.create(name="ciclops", ec2_id="i-2192")
 
     def create_fandango_shared(self):
         Instance.objects.create(name="fandango", shared=True)
@@ -114,3 +115,23 @@ class DropDatabaseViewTestCase(TestCase):
         self.cursor.execute(sql.format(canonical_name))
         row = self.cursor.fetchone()
         self.assertIsNone(row)
+
+    def test_drop_database_from_pool(self):
+        instance = Instance(name="presto")
+        pi = ProvisionedInstance.objects.create(host="127.0.0.1",
+                                                port=3306,
+                                                admin_user="root")
+        self.addCleanup(pi.delete)
+        pi.alloc(instance)
+        self.addCleanup(instance.delete)
+        view = DropDatabase()
+        request = RequestFactory().delete("/presto")
+        resp = view.delete(request, "presto")
+        self.assertEqual(200, resp.status_code)
+        sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+              "where SCHEMA_NAME = 'presto'"
+        self.cursor.execute(sql)
+        row = self.cursor.fetchone()
+        self.assertIsNone(row)
+        pi = ProvisionedInstance.objects.get(pk=pi.pk)
+        self.assertEqual(None, pi.instance)

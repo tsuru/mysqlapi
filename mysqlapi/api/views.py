@@ -13,7 +13,8 @@ from django.views.generic.base import View
 
 import crane_ec2
 from mysqlapi.api.models import (create_database, DatabaseManager,
-                                 Instance, canonicalize_db_name)
+                                 ProvisionedInstance, Instance,
+                                 canonicalize_db_name)
 
 
 class CreateUser(View):
@@ -106,6 +107,9 @@ class DropDatabase(View):
         if instance.shared:
             db = instance.db_manager()
             db.drop_database()
+        elif instance.ec2_id is None:
+            pi = ProvisionedInstance.objects.get(instance=instance)
+            pi.dealloc()
         elif self._client.unauthorize(instance) and \
                 self._client.terminate(instance):
             pass

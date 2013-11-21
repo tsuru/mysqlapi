@@ -186,6 +186,7 @@ class ProvisionedInstance(models.Model):
         instance.ec2_id = None
         instance.state = "running"
         instance.save()
+        self.instance = instance
         self.save()
 
     def dealloc(self):
