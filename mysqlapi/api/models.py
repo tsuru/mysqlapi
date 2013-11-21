@@ -49,12 +49,13 @@ class DatabaseManager(object):
     def __init__(self,
                  name,
                  host="localhost",
+                 port="3306",
                  user="root",
                  password="",
                  public_host=None):
         self.name = canonicalize_db_name(name)
         self._host = host
-        self.port = '3306'
+        self.port = port
         self.conn = Connection(self._host, user, password, "")
         self._public_host = public_host
 
