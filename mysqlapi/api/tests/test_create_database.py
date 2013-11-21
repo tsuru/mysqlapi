@@ -16,7 +16,7 @@ from mysqlapi.api.database import Connection
 from mysqlapi.api.models import (create_database, DatabaseManager,
                                  DatabaseCreationError, Instance,
                                  InstanceAlreadyExists, InvalidInstanceName,
-                                 canonicalize_db_name)
+                                 ProvisionedInstance, canonicalize_db_name)
 from mysqlapi.api.tests import mocks
 from mysqlapi.api.views import CreateDatabase
 
@@ -225,6 +225,7 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
         self.cursor = self.conn.cursor()
         self.old_shared_server = settings.SHARED_SERVER
         settings.SHARED_SERVER = None
+        settings.USE_POOL = False
         reset_queue()
 
     def tearDown(self):
@@ -273,6 +274,47 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
         finally:
             self.cursor.execute("DROP DATABASE IF EXISTS water")
             instance.delete()
+
+    def test_create_database_provisioned(self):
+        settings.USE_POOL = True
+        pi = ProvisionedInstance.objects.create(host="127.0.0.1",
+                                                port=3306,
+                                                admin_user="root")
+        self.addCleanup(pi.delete)
+        instance = Instance(name="hello_world")
+        try:
+            create_database(instance)
+            sql = "select SCHEMA_NAME from information_schema.SCHEMATA " +\
+                  "where SCHEMA_NAME = 'hello_world'"
+            self.cursor.execute(sql)
+            row = self.cursor.fetchone()
+            self.assertIsNotNone(row)
+            self.assertEqual("hello_world", row[0])
+            self.assertIsNotNone(instance.pk)
+            self.assertEqual("127.0.0.1", instance.host)
+            self.assertEqual("3306", instance.port)
+            self.assertEqual("running", instance.state)
+            self.assertFalse(instance.shared)
+            self.assertIsNone(instance.ec2_id)
+        finally:
+            self.cursor.execute("DROP DATABASE IF EXISTS hello_world")
+            instance.delete()
+
+    def test_create_database_provisioned_none_left(self):
+        settings.USE_POOL = True
+        instance = Instance.objects.create(name="mydb")
+        self.addCleanup(instance.delete)
+        pi = ProvisionedInstance.objects.create(instance=instance,
+                                                host="127.0.0.1",
+                                                port=3306,
+                                                admin_user="root")
+        self.addCleanup(pi.delete)
+        instance = Instance(name="hello_world")
+        with self.assertRaises(DatabaseCreationError) as cm:
+            create_database(instance)
+        exc = cm.exception
+        self.assertEqual((instance, "No free instances available in the pool"),
+                         exc.args)
 
     def test_create_database_canonicalizes_name(self):
         settings.SHARED_SERVER = "127.0.0.1"

@@ -231,7 +231,12 @@ def _create_shared_database(instance):
 
 
 def _create_from_pool(instance):
-    pass
+    provisioned_instance = ProvisionedInstance.objects.filter(
+        instance__isnull=True)[:1]
+    if not provisioned_instance:
+        raise DatabaseCreationError(instance,
+                                    "No free instances available in the pool")
+    provisioned_instance[0].alloc(instance)
 
 
 def _create_dedicate_database(instance, ec2_client):
