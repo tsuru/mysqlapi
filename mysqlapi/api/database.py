@@ -12,6 +12,7 @@ class Connection(object):
 
     def __init__(self,
                  hostname="localhost",
+                 port="3306",
                  username="",
                  password="",
                  database=""):
@@ -19,6 +20,7 @@ class Connection(object):
         self.username = username
         self.password = password
         self.database = database
+        self.port = port
         self._connection = None
 
     def open(self):
