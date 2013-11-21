@@ -308,9 +308,9 @@ class CreateDatabaseFunctionTestCase(unittest.TestCase):
         finally:
             instance.delete()
 
-    # protecting against incosistency between the api database and mysql server
-    # itself
     def test_create_database_when_database_already_exist(self):
+        # Protecting against incosistency between the api database and mysql
+        # server itself.
         settings.SHARED_SERVER = "127.0.0.1"
         instance = Instance(
             name="caravan",
