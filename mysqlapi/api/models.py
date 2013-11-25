@@ -28,7 +28,7 @@ class InstanceAlreadyExists(Exception):
         self.args = [u"Instance %s already exists." % name]
 
 
-class DatabaseCreationError(BaseException):
+class DatabaseCreationError(Exception):
     pass
 
 
