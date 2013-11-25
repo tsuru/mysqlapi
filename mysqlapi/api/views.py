@@ -56,10 +56,10 @@ class CreateDatabase(View):
 
     def post(self, request):
         if not "name" in request.POST:
-            return HttpResponse("App name is missing", status=500)
+            return HttpResponse("Instance name is missing", status=500)
         name = request.POST.get("name")
         if not name:
-            return HttpResponse("App name is empty", status=500)
+            return HttpResponse("Instance name is empty", status=500)
         instance = Instance(name=canonicalize_db_name(name))
         try:
             create_database(instance, self._client)

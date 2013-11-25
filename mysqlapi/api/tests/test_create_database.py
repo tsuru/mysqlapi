@@ -53,7 +53,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         view._client = mocks.FakeEC2Client()
         response = view.post(request)
         self.assertEqual(500, response.status_code)
-        self.assertEqual("App name is missing", response.content)
+        self.assertEqual("Instance name is missing", response.content)
 
     def test_create_database_should_returns_500_when_name_is_blank(self):
         request = RequestFactory().post("/", {"name": ""})
@@ -61,7 +61,7 @@ class CreateDatabaseViewTestCase(unittest.TestCase):
         view._client = mocks.FakeEC2Client()
         response = view.post(request)
         self.assertEqual(500, response.status_code)
-        self.assertEqual("App name is empty", response.content)
+        self.assertEqual("Instance name is empty", response.content)
 
     def test_create_database_should_returns_405_when_method_is_not_post(self):
         request = RequestFactory().get("/")
