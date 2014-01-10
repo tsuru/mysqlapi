@@ -7,33 +7,20 @@ This is a service API for MySQL, used for [tsuru](https://github.com/globocom/ts
 Installation
 ------------
 
-First, create an app in tsuru:
-
-    $> tsuru app-create mysql-api python
-
-Add the returned remote to your repository:
-
-    $> git remote add tsuru git@yourremote.git
-
-When the app is in `started` state, push the code:
-
-    $> git push tsuru master
-
-Basic set up
-------------
-
 In order to have mysql API ready to receive requests, we need some bootstrap stuff.
 
-First export the django settings variable:
+The first step is to install the dependencies. Let's use pip to do it:
 
-    $> tsuru env-set --app mysql-api DJANGO_SETTINGS_MODULE=mysqlapi.settings
+    $ pip install -r requirements.txt
 
-Now gunicorn is able to run with our wsgi.py configuration.
-After that, we need to run syncdb:
+Now we need to run syncdb:
 
-    $> tsuru run --app mysql-api -- python manage.py syncdb --noinput
+    $ python manage.py syncdb
 
-Now we're ready to move on.
+Exporting enviroment variable to set the settings location:
+
+    $ export DJANGO_SETTINGS_MODULE=mysqlapi.settings
+
 
 Choose your configuration mode
 ------------------------------
@@ -52,24 +39,29 @@ e.g. when you add/bind your app with mysql service, tsuru will export all enviro
 Shared Configuration
 --------------------
 
-To run the API in shared mode, you'll need some setup. First export the needed variables:
+To run the API in shared mode, is needed to have a mysql installed and export two 
+enviroment variables.
 
-    $> tsuru env-set --app mysql-api MYSQLAPI_SHARED_SERVER=mysqlhost.com
-
-If the shared mysql database is installed in the sabe vm that the app is, you can use `localhost` for `MYSQLAPI_SHARED_SERVER`,
+One variable is to set the mysql host. If the shared mysql database is installed in the sabe vm that the app is, you can use `localhost` for `MYSQLAPI_SHARED_SERVER`,
 but you'll also need to set up a externally accessible endpoint to be used by the apps that are using the service:
 
-    $> tsuru env-set --app mysql-api MYSQLAPI_SHARED_SERVER_PUBLIC_HOST=publichost.com
+    $ MYSQLAPI_SHARED_SERVER=mysqlhost.com
+    $ MYSQLAPI_SHARED_SERVER_PUBLIC_HOST=publichost.com
 
 ** Important: if your tsuru setup is using ELB, you shouldn't use it's address here, the LB keeps the connections alive, what will
 cause mysql to eventually fail, you should use your application unit address.
+
+Running the api
+---------------
+
+    $ gunicorn wsgi -b 0.0.0.0:8888
 
 Try your configuration
 ----------------------
 
 You can try if the previous configuration worked using curl:
 
-    $> curl -d 'name=myapp' http://ec2-23-23-67-196.compute-1.amazonaws.com/resources
+    $> curl -d 'name=myapp' http://youmysqlapi.com/resources
 
 This call is equivalente to tsuru service-add xx yy and will return 201 if everything goes ok.
 
