@@ -165,3 +165,7 @@ S3_SECRET_KEY = os.environ.get("TSURU_S3_SECRET_KEY")
 S3_BUCKET = os.environ.get("TSURU_S3_BUCKET")
 
 SALT = os.environ.get("MYSQLAPI_SALT", "")
+
+ALLOWED_HOSTS = [
+    os.environ.get("MYSQLAPI_ALLOWED_HOST", "localhost"),
+]
