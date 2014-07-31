@@ -21,7 +21,7 @@ class CreateUser(View):
 
     def post(self, request, name, *args, **kwargs):
         name = canonicalize_db_name(name)
-        if not "unit-host" in request.POST:
+        if "unit-host" not in request.POST:
             return HttpResponse("Hostname is missing", status=500)
         hostname = request.POST.get("unit-host", None)
         if not hostname:
@@ -55,7 +55,7 @@ class CreateDatabase(View):
         self._client = crane_ec2.Client()
 
     def post(self, request):
-        if not "name" in request.POST:
+        if "name" not in request.POST:
             return HttpResponse("Instance name is missing", status=500)
         name = request.POST.get("name")
         if not name:
