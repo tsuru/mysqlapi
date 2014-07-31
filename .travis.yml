@@ -7,9 +7,3 @@ install:
   - mysql -u root -e 'create database mysqlapi'
 script:
   - python manage.py test && flake8 .
-notifications:
-  irc:
-    channels:
-      - "irc.freenode.net#tsuru"
-    on_success: change
-    on_failure: always
