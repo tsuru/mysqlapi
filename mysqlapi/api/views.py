@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2013 mysqlapi authors. All rights reserved.
+# Copyright 2014 mysqlapi authors. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
@@ -12,6 +12,8 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
 import crane_ec2
+
+from mysqlapi.api.decorators import basic_auth_required
 from mysqlapi.api.models import (create_database, DatabaseManager,
                                  ProvisionedInstance, Instance,
                                  canonicalize_db_name)
@@ -68,6 +70,7 @@ class CreateDatabase(View):
         return HttpResponse("", status=201)
 
 
+@basic_auth_required
 @require_http_methods(["DELETE"])
 def drop_user(request, name, hostname):
     try:
@@ -120,6 +123,7 @@ class DropDatabase(View):
         return HttpResponse("", status=200)
 
 
+@basic_auth_required
 @require_http_methods(["GET"])
 def export(request, name):
     host = request.GET.get("service_host", "localhost")
