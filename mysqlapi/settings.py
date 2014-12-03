@@ -115,8 +115,6 @@ INSTALLED_APPS = (
     # "django.contrib.admindocs",
 )
 
-ALLOWED_HOSTS = ["*"]
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
