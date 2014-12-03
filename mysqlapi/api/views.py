@@ -19,15 +19,10 @@ from mysqlapi.api.models import (create_database, DatabaseManager,
                                  canonicalize_db_name)
 
 
-class CreateUser(View):
+class BindApp(View):
 
     def post(self, request, name, *args, **kwargs):
         name = canonicalize_db_name(name)
-        if "unit-host" not in request.POST:
-            return HttpResponse("Hostname is missing", status=500)
-        hostname = request.POST.get("unit-host", None)
-        if not hostname:
-            return HttpResponse("Hostname is empty", status=500)
         try:
             instance = Instance.objects.get(name=name)
         except Instance.DoesNotExist:
@@ -37,7 +32,7 @@ class CreateUser(View):
             return HttpResponse(msg, status=412)
         db = instance.db_manager()
         try:
-            username, password = db.create_user(name, hostname)
+            username, password = db.create_user(name, None)
         except Exception, e:
             return HttpResponse(e.args[-1], status=500)
         config = {
@@ -48,6 +43,27 @@ class CreateUser(View):
             "MYSQL_PASSWORD": password,
         }
         return HttpResponse(json.dumps(config), status=201)
+
+    def delete(self, request, name, *args, **kwargs):
+        try:
+            instance = Instance.objects.get(name=name)
+        except Instance.DoesNotExist:
+            return HttpResponse("Instance not found.", status=404)
+        db = instance.db_manager()
+        try:
+            db.drop_user(name, None)
+        except Exception, e:
+            return HttpResponse(e.args[-1], status=500)
+        return HttpResponse("", status=200)
+
+
+class BindUnit(View):
+
+    def post(self, request, name, *args, **kwargs):
+        return HttpResponse("", status=201)
+
+    def delete(self, request, name, *args, **kwargs):
+        return HttpResponse("", status=200)
 
 
 class CreateDatabase(View):
@@ -68,30 +84,6 @@ class CreateDatabase(View):
         except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         return HttpResponse("", status=201)
-
-
-@basic_auth_required
-@require_http_methods(["DELETE"])
-def drop_user(request, name, hostname):
-    try:
-        instance = Instance.objects.get(name=name)
-    except Instance.DoesNotExist:
-        return HttpResponse("Instance not found.", status=404)
-    db = instance.db_manager()
-    try:
-        db.drop_user(name, hostname)
-    except Exception, e:
-        return HttpResponse(e.args[-1], status=500)
-    return HttpResponse("", status=200)
-
-
-class CreateUserOrDropDatabase(View):
-
-    def post(self, request, name, *args, **kwargs):
-        return CreateUser.as_view()(request, name)
-
-    def delete(self, request, name, *args, **kwargs):
-        return DropDatabase.as_view()(request, name)
 
 
 class DropDatabase(View):
