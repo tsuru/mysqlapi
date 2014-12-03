@@ -1,6 +1,6 @@
 #mysqlapi
 
-[![Build Status](https://secure.travis-ci.org/globocom/mysqlapi.png?branch=master)](http://travis-ci.org/globocom/mysqlapi)
+[![Build Status](https://secure.travis-ci.org/tsuru/mysqlapi.png?branch=master)](http://travis-ci.org/tsuru/mysqlapi)
 
 This is a service API for MySQL, used for [tsuru](https://github.com/globocom/tsuru).
 
