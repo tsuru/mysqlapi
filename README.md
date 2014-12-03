@@ -27,29 +27,33 @@ Choose your configuration mode
 
 There are three modes to configure the API usage behavior:
 
-- `shared`: this configuration forces all applications to share the same mysql installation, in this mode, mysql API
-will create a new user and a new database when added/binded by an app.
-- `dedicated (on-demmand)`: every app using mysql will have a single vm for it's usage, in this mode, mysql API will create a vm,
-install everything needed to run mysql based on a predefined AMI and create a user and password.
-- `dedicated (pre-provisioned)`: every app using mysql will have a single MySQL instance, pre-provisioned.
+- `shared`: this configuration forces all applications to share the same mysql
+  installation, in this mode, mysql API will create a new user and a new
+  database when added/binded by an app.
+- `dedicated (on-demmand)`: every app using mysql will have a single vm for
+  it's usage, in this mode, mysql API will create a vm, install everything
+  needed to run mysql based on a predefined AMI and create a user and password.
+- `dedicated (pre-provisioned)`: every app using mysql will have a single MySQL
+  instance, pre-provisioned.
 
-Everything that is needed by the application to connect with mysql is provided automatically by tsuru, using environment variables,
-e.g. when you add/bind your app with mysql service, tsuru will export all environment variables returned by mysql API.
+Everything that is needed by the application to connect with mysql is provided
+automatically by tsuru, using environment variables, e.g. when you add/bind
+your app with mysql service, tsuru will export all environment variables
+returned by mysql API.
 
 Shared Configuration
 --------------------
 
-To run the API in shared mode, is needed to have a mysql installed and export two 
-enviroment variables.
+To run the API in shared mode, is needed to have a mysql installed and export
+two enviroment variables.
 
-One variable is to set the mysql host. If the shared mysql database is installed in the sabe vm that the app is, you can use `localhost` for `MYSQLAPI_SHARED_SERVER`,
-but you'll also need to set up a externally accessible endpoint to be used by the apps that are using the service:
+One variable is to set the mysql host. If the shared mysql database is
+installed in the sabe vm that the app is, you can use `localhost` for
+``MYSQLAPI_SHARED_SERVER``, but you'll also need to set up a externally
+accessible endpoint to be used by the apps that are using the service:
 
     $ MYSQLAPI_SHARED_SERVER=mysqlhost.com
     $ MYSQLAPI_SHARED_SERVER_PUBLIC_HOST=publichost.com
-
-** Important: if your tsuru setup is using ELB, you shouldn't use it's address here, the LB keeps the connections alive, what will
-cause mysql to eventually fail, you should use your application unit address.
 
 Running the api
 ---------------
@@ -63,6 +67,7 @@ You can try if the previous configuration worked using curl:
 
     $> curl -d 'name=myapp' http://youmysqlapi.com/resources
 
-This call is equivalente to tsuru service-add xx yy and will return 201 if everything goes ok.
+This call is the same as to ``tsuru service-add <service-name>
+<service-instance-name>`` and will return 201 if everything goes ok.
 
 If there are any problems, be welcome to report an issue :)
