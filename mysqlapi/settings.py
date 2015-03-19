@@ -1,4 +1,4 @@
-# Copyright 2014 mysqlapi authors. All rights reserved.
+# Copyright 2015 mysqlapi authors. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
@@ -88,7 +88,7 @@ MIDDLEWARE_CLASSES = (
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "api.middleware.ExceptionLoggingMiddleware",
+    "mysqlapi.api.middleware.ExceptionLoggingMiddleware",
     # Uncomment the next line for simple clickjacking protection:
     # "django.middleware.clickjacking.XFrameOptionsMiddleware",
 )
