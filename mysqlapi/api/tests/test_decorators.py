@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2014 mysqlapi authors. All rights reserved.
+# Copyright 2015 mysqlapi authors. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
@@ -45,6 +45,16 @@ class BasicAuthTestCase(test.TestCase):
         request = self.factory.get("/")
         token = base64.b64encode(self.username + ":" + self.password)
         request.META["HTTP_AUTHORIZATION"] = "basic " + token
+        fn(request)
+        self.assertEqual(1, calls["c"])
+
+    def test_auth_success_basic_titled(self):
+        self.setenvs()
+        self.addCleanup(self.delenvs)
+        fn, calls = self.get_fn()
+        request = self.factory.get("/")
+        token = base64.b64encode(self.username + ":" + self.password)
+        request.META["HTTP_AUTHORIZATION"] = "Basic " + token
         fn(request)
         self.assertEqual(1, calls["c"])
 

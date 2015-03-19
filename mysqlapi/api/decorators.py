@@ -1,4 +1,4 @@
-# Copyright 2014 mysqlapi authors. All rights reserved.
+# Copyright 2015 mysqlapi authors. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ def basic_auth_required(view):
         if not auth:
             return unauthorized_resp
         kind, data = auth.split()
-        if kind != "basic":
+        if kind.lower() != "basic":
             return unauthorized_resp
         username, password = base64.b64decode(data).split(":")
         if username == expected_username and password == expected_password:
