@@ -37,11 +37,12 @@ class InstanceQueue(object):
 class DatabaseCreator(threading.Thread):
 
     def __init__(self, manager_cls, ec2_client, user="root", password=""):
+        super(DatabaseCreator, self).__init__()
         self.DatabaseManager = manager_cls
         self.ec2_client = ec2_client
         self.user = user
         self.password = password
-        super(DatabaseCreator, self).__init__()
+        self.daemon = True
 
     def _error(self, exc, instance):
         self.ec2_client.unauthorize(instance)
