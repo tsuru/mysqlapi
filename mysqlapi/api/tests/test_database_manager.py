@@ -84,6 +84,16 @@ class DatabaseTestCase(TestCase):
         row = self.cursor.fetchone()
         self.assertFalse(row)
 
+    def test_create__and_drop_user_username_greater_than_16_chars(self):
+        db = DatabaseManager("anusernamegreaterthan16")
+        db.create_user("anusernamegreaterthan16", "%")
+        db.drop_user("anusernamegreaterthan16", "%")
+        sql = "select User, Host FROM mysql.user " + \
+            "WHERE User LIKE 'anusernamegr%' AND Host='%'"
+        self.cursor.execute(sql)
+        row = self.cursor.fetchone()
+        self.assertFalse(row)
+
     def test_export(self):
         db = DatabaseManager("magneto")
         db.create_database()

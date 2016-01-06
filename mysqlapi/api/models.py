@@ -93,6 +93,7 @@ class DatabaseManager(object):
     def drop_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
+        username = generate_user(username)
         cursor.execute("drop user '{0}'@'%'".format(username))
         self.conn.close()
 
