@@ -45,6 +45,7 @@ class BindApp(View):
         return HttpResponse(json.dumps(config), status=201)
 
     def delete(self, request, name, *args, **kwargs):
+        name = canonicalize_db_name(name)
         try:
             instance = Instance.objects.get(name=name)
         except Instance.DoesNotExist:
