@@ -33,5 +33,5 @@ def start():
 
 start()
 
-from django.core.wsgi import get_wsgi_application
+from django.core.wsgi import get_wsgi_application  # NOQA
 application = get_wsgi_application()
