@@ -80,12 +80,12 @@ class DatabaseCreator(threading.Thread):
 
 _instance_queue = InstanceQueue()
 
-
+#Create a queue 
 def build_queue():
     for instance in model_class.objects.filter(state="pending", shared=False):
         enqueue(instance)
 
-
+#Reset a queue
 def reset_queue():
     global _instance_queue
     _instance_queue = InstanceQueue()
