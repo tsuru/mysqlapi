@@ -22,7 +22,7 @@ def huphandler(signum, frame):
 def termhandler(signum, frame):
     creator.close_queue()
 
-
+#inicialization dB function
 def start():
     client = crane_ec2.Client()
     signal.signal(signal.SIGHUP, huphandler)
