@@ -16,7 +16,7 @@ The first step is to install the dependencies. Let's use pip to do it:
 
 Now we need to run syncdb:
 
-    $ python manage.py syncdb
+    $ python manage.py migrate
 
 Exporting enviroment variable to set the settings location:
 
