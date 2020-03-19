@@ -33,7 +33,7 @@ class BindApp(View):
         db = instance.db_manager()
         try:
             username, password = db.create_user(name, None)
-        except Exception, e:
+        except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         config = {
             "MYSQL_HOST": db.public_host,
@@ -53,7 +53,7 @@ class BindApp(View):
         db = instance.db_manager()
         try:
             db.drop_user(name, None)
-        except Exception, e:
+        except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         return HttpResponse("", status=200)
 
@@ -123,7 +123,7 @@ def export(request, name):
     try:
         db = DatabaseManager(name, host)
         return HttpResponse(db.export())
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         return HttpResponse(e.output.split(":")[-1].strip(), status=500)
 
 
