@@ -1,4 +1,4 @@
 hooks:
     build:
-        - python manage.py syncdb --noinput
+        - python manage.py migrate --noinput
 
