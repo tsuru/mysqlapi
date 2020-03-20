@@ -104,8 +104,8 @@ $ sudo apt install mysql-server-5.6
 During install the installation script will aks you the password for `root` user.
 
 By default, mysqlapi use Mysql 8. Set the environment variable `MSQL_5_VERSION_ENABLED=True` to enable Mysql 5.6 version.
-```
-tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
+```bash
+$ tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
 ```
 
 #### Create database for mysqlapi
@@ -113,7 +113,7 @@ tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
 After install MySQL, you need to create a user and a database for `mysqlapi`,
 that is needed to store informations about created instances.
 
-```
+```bash
 mysql -u root -p
 ```
 
@@ -143,7 +143,7 @@ bind-address = 0.0.0.0
 
 To finish restart MySQL server:
 
-```
+```bash
 sudo service mysql restart
 ```
 
@@ -201,6 +201,12 @@ $ tsuru app-info -a mysqlapi | grep Address
 # set production address
 $ editor service.yaml
 $ tsuru service-create create service.yaml
+```
+
+Prepare for production:
+
+```bash
+$ tsuru env-set -a mysqlapi MYSQLAPI_DEBUG=0
 ```
 
 To list your services:
