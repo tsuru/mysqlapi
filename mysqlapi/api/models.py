@@ -36,12 +36,13 @@ def generate_password():
     return hashlib.sha1(str(os.urandom(256)).encode('utf-8')).hexdigest()
 
 
-def generate_user(username):
-    if len(username) > 16:
-        _username = username[:12] + generate_password()[:4]
+def generate_user(username, host):
+    userhost = username + '-' + host
+    if len(userhost) > 20:
+        _userhost = userhost[:20]
     else:
-        _username = username
-    return _username
+        _userhost = userhost
+    return (_userhost + '-' + hashlib.sha1(str(username + host).encode('utf-8')).hexdigest())[:32]
 
 
 class DatabaseManager(object):
@@ -86,7 +87,7 @@ class DatabaseManager(object):
     def create_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        username = generate_user(username)
+        username = generate_user(username, host)
         password = generate_password()
 
         if settings.MSQL_5_VERSION_ENABLED:
@@ -104,7 +105,7 @@ class DatabaseManager(object):
     def drop_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        username = generate_user(username)
+        username = generate_user(username, host)
         cursor.execute("drop user '{0}'@'%'".format(username))
         self.conn.close()
 

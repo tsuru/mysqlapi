@@ -8,6 +8,7 @@ import json
 import subprocess
 
 from django.http import HttpResponse
+from django.http import QueryDict
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
@@ -31,8 +32,15 @@ class BindApp(View):
             msg = u"You can't bind to this instance because it's not running."
             return HttpResponse(msg, status=412)
         db = instance.db_manager()
+
+        if "app-name" not in request.POST:
+            return HttpResponse("Instance app-name is missing", status=500)
+        appname = request.POST.get("app-name")
+        if not appname:
+            return HttpResponse("Instance app-name is empty", status=500)
+
         try:
-            username, password = db.create_user(name, None)
+            username, password = db.create_user(name, appname)
         except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         config = {
@@ -51,8 +59,16 @@ class BindApp(View):
         except Instance.DoesNotExist:
             return HttpResponse("Instance not found.", status=404)
         db = instance.db_manager()
+
+        request_delete = QueryDict(request.body)
+        if "app-name" not in request_delete:
+            return HttpResponse("Instance app-name is missing", status=500)
+        appname = request_delete.get("app-name")
+        if not appname:
+            return HttpResponse("Instance app-name is empty", status=500)
+
         try:
-            db.drop_user(name, None)
+            db.drop_user(name, appname)
         except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         return HttpResponse("", status=200)
