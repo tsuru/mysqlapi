@@ -103,6 +103,10 @@ $ sudo apt install mysql-server-5.6
 
 During install the installation script will aks you the password for `root` user.
 
+By default, mysqlapi use Mysql 8. Set the environment variable `MSQL_5_VERSION_ENABLED=True` to enable Mysql 5.6 version.
+```
+tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
+```
 
 #### Create database for mysqlapi
 
@@ -161,9 +165,6 @@ $ tsuru env-set -a mysqlapi MYSQLAPI_DB_NAME=mysqlapi
 $ tsuru env-set -a mysqlapi MYSQLAPI_DB_USER=mysqlapi
 $ tsuru env-set -a mysqlapi MYSQLAPI_DB_PASSWORD=mysqlpass
 $ tsuru env-set -a mysqlapi MYSQLAPI_DB_HOST=db.192.168.50.4.nip.io
-
-# salt used to hash the username/password
-$ tsuru env-set -a mysqlapi MYSQLAPI_SALT=******
 
 # Exporting enviroment variable to set the settings location
 tsuru env-set -a mysqlapi DJANGO_SETTINGS_MODULE=mysqlapi.settings

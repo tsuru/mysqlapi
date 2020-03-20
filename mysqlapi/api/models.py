@@ -32,13 +32,13 @@ class DatabaseCreationError(Exception):
     pass
 
 
-def generate_password(string):
-    return hashlib.sha1(string + settings.SALT).hexdigest()
+def generate_password():
+    return hashlib.sha1(str(os.urandom(256)).encode('utf-8')).hexdigest()
 
 
 def generate_user(username):
     if len(username) > 16:
-        _username = username[:12] + generate_password(username)[:4]
+        _username = username[:12] + generate_password()[:4]
     else:
         _username = username
     return _username
@@ -87,16 +87,16 @@ class DatabaseManager(object):
         self.conn.open()
         cursor = self.conn.cursor()
         username = generate_user(username)
-        password = generate_password(username)
+        password = generate_password()
 
         if settings.MSQL_5_VERSION_ENABLED:
             sql = ("grant all privileges on {0}.* to '{1}'@'%'"
                    " identified by '{2}'")
             cursor.execute(sql.format(self.name, username, password))
         else:
-            sql = ("CREATE USER '{0}'@'%' identified by '{1}'")
+            sql = ("CREATE USER '{0}'@'%' IDENTIFIED BY '{1}';")
             cursor.execute(sql.format(username, password))
-            sql = ("grant all privileges on {0}.* to '{1}'@'%'")
+            sql = ("GRANT ALL PRIVILEGES ON {0}.* TO '{1}'@'%';")
             cursor.execute(sql.format(self.name, username))
         self.conn.close()
         return username, password
