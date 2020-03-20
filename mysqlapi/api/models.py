@@ -68,8 +68,12 @@ class DatabaseManager(object):
     def create_database(self):
         self.conn.open()
         cursor = self.conn.cursor()
-        sql = "CREATE DATABASE %s default character set utf8 " + \
-              "default collate utf8_general_ci"
+        if settings.MSQL_5_VERSION_ENABLED:
+            sql = "CREATE DATABASE %s default character set utf8 " + \
+                  "default collate utf8_general_ci"
+        else:
+            sql = "CREATE DATABASE %s default character set utf8mb4 " + \
+                  "default collate utf8mb4_unicode_ci"
         cursor.execute(sql % self.name)
         self.conn.close()
 
@@ -84,9 +88,16 @@ class DatabaseManager(object):
         cursor = self.conn.cursor()
         username = generate_user(username)
         password = generate_password(username)
-        sql = ("grant all privileges on {0}.* to '{1}'@'%'"
-               " identified by '{2}'")
-        cursor.execute(sql.format(self.name, username, password))
+
+        if settings.MSQL_5_VERSION_ENABLED:
+            sql = ("grant all privileges on {0}.* to '{1}'@'%'"
+                   " identified by '{2}'")
+            cursor.execute(sql.format(self.name, username, password))
+        else:
+            sql = ("CREATE USER '{0}'@'%' identified by '{1}'")
+            cursor.execute(sql.format(username, password))
+            sql = ("grant all privileges on {0}.* to '{1}'@'%'")
+            cursor.execute(sql.format(self.name, username))
         self.conn.close()
         return username, password
 

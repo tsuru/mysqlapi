@@ -5,16 +5,18 @@
 This is a service API for MySQL, used for [tsuru](https://github.com/tsuru/tsuru).
 
 
-Installation
+Installation on dedicated host
 ------------
 
 In order to have mysql API ready to receive requests, we need some bootstrap stuff.
+
+Requirements : `Python 3.7`
 
 The first step is to install the dependencies. Let's use pip to do it:
 
     $ pip install -r requirements.txt
 
-Now we need to run syncdb:
+Now we need to run a migration before serving:
 
     $ python manage.py migrate
 
@@ -61,6 +63,8 @@ accessible endpoint to be used by the apps that are using the service:
 Running the api
 ---------------
 
+Mysql must be installed on the same machine, otherwise, set environment variables as suggested in the next section.
+
     $ gunicorn wsgi -b 0.0.0.0:8888
 
 
@@ -69,7 +73,7 @@ Try your configuration
 
 You can try if the previous configuration worked using curl:
 
-    $> curl -d 'name=myapp' http://youmysqlapi.com/resources
+    $> curl -d 'name=myapp' http://youmysqlapi.com
 
 This call is the same as to ``tsuru service-add <service-name>
 <service-instance-name>`` and will return 201 if everything goes ok.
@@ -85,10 +89,16 @@ You can deploy `mysqlapi` as tsuru appplication.
 
 ### Install MySQL server (Debian/Ubuntu)
 
-First you should have a MySQL server. In Debian/Ubuntu, use `apt-get` to install it.
+First you should have a MySQL server. In Debian/Ubuntu, use `apt` to install it.
 
+*Mysql 8 (Newer version)*
 ```bash
-$ sudo apt-get install mysql-server-5.6
+$ sudo apt install mysql
+```
+
+*Old Mysql 5.6 version*
+```bash
+$ sudo apt install mysql-server-5.6
 ```
 
 During install the installation script will aks you the password for `root` user.
@@ -107,8 +117,19 @@ Here is an example:
 
 ```sql
 CREATE DATABASE mysqlapi CHARACTER SET utf8 COLLATE utf8_bin;
+```
+
+*Mysql 8 (Newer version)*
+```bash
+CREATE USER 'mysqlapi'@'%' IDENTIFIED BY 'mysqlpass';
+GRANT ALL PRIVILEGES ON mysqlapi.* TO 'mysqlapi'@'%';
+```
+
+*Old Mysql 5.6 version*
+```sql
 GRANT ALL PRIVILEGES ON mysqlapi.* TO 'mysqlapi'@'%' IDENTIFIED BY 'mysqlpass';
 ```
+
 Configure mysql to accept external connection, create a file `/etc/mysql/conf.d/bind.cnf` with the following content:
 
 ```
@@ -150,6 +171,8 @@ tsuru env-set -a mysqlapi DJANGO_SETTINGS_MODULE=mysqlapi.settings
 
 Export these variables to specify the shared cluster:
 
+In that configuration, *`root` user has to be accessible by the app*. If needed, create a new root user on Mysql with a secure ip range.
+
 ```bash
 # these settings can be different with mysqlapi's database
 $ tsuru env-set -a mysqlapi MYSQLAPI_SHARED_SERVER=db.192.168.50.4.nip.io
@@ -176,13 +199,11 @@ Configure the service template and point it to your application:
 $ tsuru app-info -a mysqlapi | grep Address
 # set production address
 $ editor service.yaml
-$ crane create service.yaml
+$ tsuru service-create create service.yaml
 ```
 
 To list your services:
 
 ```bash
-$ crane list
-# OR
 $ tsuru service-list
 ```
