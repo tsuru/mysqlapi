@@ -2,6 +2,6 @@ Django==1.9
 mysqlclient
 #MySQL-python==1.2.5
 boto
-crane-ec2
+crane-ec2==0.2.1
 gunicorn
 gevent

@@ -4,6 +4,8 @@
 
 import os
 
+import django
+
 ROOT = os.path.abspath(os.path.dirname(__file__))
 DEBUG = int(os.environ.get("MYSQLAPI_DEBUG", 1)) != 0
 TEMPLATE_DEBUG = DEBUG
@@ -170,3 +172,5 @@ SALT = os.environ.get("MYSQLAPI_SALT", "")
 ALLOWED_HOSTS = [
     os.environ.get("MYSQLAPI_ALLOWED_HOST", "localhost"),
 ]
+
+django.setup()
