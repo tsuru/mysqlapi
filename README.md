@@ -1,4 +1,4 @@
-#mysqlapi
+# mysqlapi
 
 [![Build Status](https://secure.travis-ci.org/tsuru/mysqlapi.png?branch=master)](http://travis-ci.org/tsuru/mysqlapi)
 
@@ -10,9 +10,9 @@ Installation on dedicated host
 
 In order to have mysql API ready to receive requests, we need some bootstrap stuff.
 
-Requirements : `Python 3.7`
+**Requirements :** `Python 3.7`
 
-The first step is to install the dependencies. Let's use pip to do it:
+The first step is to install the dependencies. Let's use `pip to do it:
 
     $ pip install -r requirements.txt
 
@@ -20,7 +20,7 @@ Now we need to run a migration before serving:
 
     $ python manage.py migrate
 
-Exporting enviroment variable to set the settings location:
+Exporting environment variable to set the settings location:
 
     $ export DJANGO_SETTINGS_MODULE=mysqlapi.settings
 
@@ -32,7 +32,7 @@ There are three modes to configure the API usage behavior:
 
 - `shared`: this configuration forces all applications to share the same mysql
   installation, in this mode, mysql API will create a new user and a new
-  database when added/binded by an app.
+  database when added/binded by one app.
 - `dedicated (on-demmand)`: every app using mysql will have a single vm for
   it's usage, in this mode, mysql API will create a vm, install everything
   needed to run mysql based on a predefined AMI and create a user and password.
@@ -49,11 +49,11 @@ Shared Configuration
 --------------------
 
 To run the API in shared mode, is needed to have a mysql installed and export
-two enviroment variables.
+two environment variables.
 
 One variable is to set the mysql host. If the shared mysql database is
 installed in the sabe vm that the app is, you can use `localhost` for
-``MYSQLAPI_SHARED_SERVER``, but you'll also need to set up a externally
+``MYSQLAPI_SHARED_SERVER``, but you'll also need to set up an externally
 accessible endpoint to be used by the apps that are using the service:
 
     $ MYSQLAPI_SHARED_SERVER=mysqlhost.com
@@ -91,19 +91,19 @@ You can deploy `mysqlapi` as tsuru appplication.
 
 First you should have a MySQL server. In Debian/Ubuntu, use `apt` to install it.
 
-*Mysql 8 (Newer version)*
+**Mysql 8 (Newer version, default)**
 ```bash
 $ sudo apt install mysql
 ```
 
-*Old Mysql 5.6 version*
+**Old Mysql 5.6 version**
 ```bash
 $ sudo apt install mysql-server-5.6
 ```
 
 During install the installation script will aks you the password for `root` user.
 
-By default, mysqlapi use Mysql 8. Set the environment variable `MSQL_5_VERSION_ENABLED=True` to enable Mysql 5.6 version.
+By default, `mysqlapi uses Mysql 8. Set the environment variable `MSQL_5_VERSION_ENABLED=True` **to enable Mysql 5.6 version**.
 ```bash
 $ tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
 ```
@@ -111,7 +111,7 @@ $ tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
 #### Create database for mysqlapi
 
 After install MySQL, you need to create a user and a database for `mysqlapi`,
-that is needed to store informations about created instances.
+that is needed to store information about created instances.
 
 ```bash
 mysql -u root -p
@@ -150,7 +150,7 @@ sudo service mysql restart
 
 ### Install service
 
-Now you can install `mysqlapi` service. In your tsuru client machine (with crane installed):
+Now you can install `mysqlapi` service. In your tsuru client machine:
 
 ```bash
 $ git clone https://github.com/tsuru/mysqlapi
@@ -166,13 +166,13 @@ $ tsuru env-set -a mysqlapi MYSQLAPI_DB_USER=mysqlapi
 $ tsuru env-set -a mysqlapi MYSQLAPI_DB_PASSWORD=mysqlpass
 $ tsuru env-set -a mysqlapi MYSQLAPI_DB_HOST=db.192.168.50.4.nip.io
 
-# Exporting enviroment variable to set the settings location
+# Exporting environment variable to set the settings location
 tsuru env-set -a mysqlapi DJANGO_SETTINGS_MODULE=mysqlapi.settings
 ```
 
 Export these variables to specify the shared cluster:
 
-In that configuration, *`root` user has to be accessible by the app*. If needed, create a new root user on Mysql with a secure ip range.
+In that configuration, **`root` user has to be accessible by the app**. If needed, create a new root user on Mysql with a secure ip range corresponding to your app machine ip.
 
 ```bash
 # these settings can be different with mysqlapi's database
