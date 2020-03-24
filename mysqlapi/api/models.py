@@ -269,6 +269,6 @@ def _create_dedicate_database(instance, ec2_client):
 
 def canonicalize_db_name(name):
     if re.search(r"[\W\s]", name) is not None:
-        prefix = hashlib.sha1(name).hexdigest()[:10]
+        prefix = hashlib.sha1(str(name).encode('utf-8')).hexdigest()[:10]
         name = re.sub(r"[\W\s]", "_", name) + prefix
     return name
