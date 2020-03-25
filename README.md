@@ -103,7 +103,7 @@ $ sudo apt install mysql-server-5.6
 
 During install the installation script will aks you the password for `root` user.
 
-By default, `mysqlapi uses Mysql 8. Set the environment variable `MSQL_5_VERSION_ENABLED=True` **to enable Mysql 5.6 version**.
+By default, `mysqlapi` uses Mysql 8. Set the environment variable `MSQL_5_VERSION_ENABLED=True` **to enable Mysql 5.6 version**.
 ```bash
 $ tsuru env-set -a mysqlapi MSQL_5_VERSION_ENABLED=True
 ```
