@@ -200,7 +200,7 @@ Configure the service template and point it to your application:
 $ tsuru app-info -a mysqlapi | grep Address
 # set production address
 $ editor service.yaml
-$ tsuru service-create create service.yaml
+$ tsuru service-create service.yaml
 ```
 
 Prepare for production:
