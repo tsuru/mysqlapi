@@ -173,6 +173,11 @@ tsuru env-set -a mysqlapi DJANGO_SETTINGS_MODULE=mysqlapi.settings
 Export these variables to specify the shared cluster:
 
 In that configuration, **`root` user has to be accessible by the app**. If needed, create a new root user on Mysql with a secure ip range corresponding to your app machine ip.
+Please, be careful of security issues concerned about those two commands :
+```sql
+CREATE USER 'root'@'%' IDENTIFIED BY 'rootpassword';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+```
 
 ```bash
 # these settings can be different with mysqlapi's database
@@ -214,3 +219,9 @@ To list your services:
 ```bash
 $ tsuru service-list
 ```
+
+## Issue
+
+You can not bind an intance with a dash `-` into the name. Django 1.9 can't parse the name on the url `/resources/firstpart-secondpart/bind-app`. Resulting on a 404 error.
+
+Instead use underscore `_` in names.
