@@ -176,7 +176,7 @@ class Instance(models.Model):
 
 
 class ProvisionedInstance(models.Model):
-    instance = models.ForeignKey(Instance, null=True, blank=True, unique=True, on_delete = models.CASCADE)
+    instance = models.OneToOneField(Instance, null=True, blank=True, on_delete = models.CASCADE)
     host = models.CharField(max_length=500)
     port = models.IntegerField(default=3306)
     admin_user = models.CharField(max_length=255, default="root")
