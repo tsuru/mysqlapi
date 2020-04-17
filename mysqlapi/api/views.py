@@ -8,6 +8,7 @@ import json
 import subprocess
 
 from django.http import HttpResponse
+from django.http import QueryDict
 from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 
@@ -31,9 +32,16 @@ class BindApp(View):
             msg = u"You can't bind to this instance because it's not running."
             return HttpResponse(msg, status=412)
         db = instance.db_manager()
+
+        if "app-name" not in request.POST:
+            return HttpResponse("Instance app-name is missing", status=500)
+        appname = request.POST.get("app-name")
+        if not appname:
+            return HttpResponse("Instance app-name is empty", status=500)
+
         try:
-            username, password = db.create_user(name, None)
-        except Exception, e:
+            username, password = db.create_user(name, appname)
+        except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         config = {
             "MYSQL_HOST": db.public_host,
@@ -51,9 +59,17 @@ class BindApp(View):
         except Instance.DoesNotExist:
             return HttpResponse("Instance not found.", status=404)
         db = instance.db_manager()
+
+        request_delete = QueryDict(request.body)
+        if "app-name" not in request_delete:
+            return HttpResponse("Instance app-name is missing", status=500)
+        appname = request_delete.get("app-name")
+        if not appname:
+            return HttpResponse("Instance app-name is empty", status=500)
+
         try:
-            db.drop_user(name, None)
-        except Exception, e:
+            db.drop_user(name, appname)
+        except Exception as e:
             return HttpResponse(e.args[-1], status=500)
         return HttpResponse("", status=200)
 
@@ -123,7 +139,7 @@ def export(request, name):
     try:
         db = DatabaseManager(name, host)
         return HttpResponse(db.export())
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         return HttpResponse(e.output.split(":")[-1].strip(), status=500)
 
 

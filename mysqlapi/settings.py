@@ -4,6 +4,8 @@
 
 import os
 
+import django
+
 ROOT = os.path.abspath(os.path.dirname(__file__))
 DEBUG = int(os.environ.get("MYSQLAPI_DEBUG", 1)) != 0
 TEMPLATE_DEBUG = DEBUG
@@ -165,8 +167,11 @@ S3_ACCESS_KEY = os.environ.get("TSURU_S3_ACCESS_KEY_ID")
 S3_SECRET_KEY = os.environ.get("TSURU_S3_SECRET_KEY")
 S3_BUCKET = os.environ.get("TSURU_S3_BUCKET")
 
-SALT = os.environ.get("MYSQLAPI_SALT", "")
-
 ALLOWED_HOSTS = [
     os.environ.get("MYSQLAPI_ALLOWED_HOST", "localhost"),
 ]
+
+MSQL_5_VERSION_ENABLED = os.environ.get("MSQL_5_VERSION_ENABLED", 'False') in \
+    ("True", "true", "1")
+
+django.setup()

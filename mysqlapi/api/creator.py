@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-import Queue
+import queue
 import threading
 
 model_class = None
@@ -11,7 +11,7 @@ model_class = None
 class InstanceQueue(object):
 
     def __init__(self):
-        self._queue = Queue.Queue()
+        self._queue = queue.Queue()
         self._closed = False
         self._sem = threading.Semaphore()
 
@@ -55,7 +55,7 @@ class DatabaseCreator(threading.Thread):
         while not _instance_queue.closed:
             try:
                 instance = _instance_queue.get(timeout=2)
-            except Queue.Empty:
+            except queue.Empty:
                 continue
             if not self.ec2_client.get(instance):
                 _instance_queue.put(instance)

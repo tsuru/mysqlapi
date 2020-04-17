@@ -32,16 +32,17 @@ class DatabaseCreationError(Exception):
     pass
 
 
-def generate_password(string):
-    return hashlib.sha1(string + settings.SALT).hexdigest()
+def generate_password():
+    return hashlib.sha1(str(os.urandom(256)).encode('utf-8')).hexdigest()
 
 
-def generate_user(username):
-    if len(username) > 16:
-        _username = username[:12] + generate_password(username)[:4]
+def generate_user(username, host):
+    userhost = username + '-' + host
+    if len(userhost) > 20:
+        _userhost = userhost[:20]
     else:
-        _username = username
-    return _username
+        _userhost = userhost
+    return (_userhost + '-' + hashlib.sha1(str(username + host).encode('utf-8')).hexdigest())[:32]
 
 
 class DatabaseManager(object):
@@ -68,8 +69,12 @@ class DatabaseManager(object):
     def create_database(self):
         self.conn.open()
         cursor = self.conn.cursor()
-        sql = "CREATE DATABASE %s default character set utf8 " + \
-              "default collate utf8_general_ci"
+        if settings.MSQL_5_VERSION_ENABLED:
+            sql = "CREATE DATABASE %s default character set utf8 " + \
+                  "default collate utf8_general_ci"
+        else:
+            sql = "CREATE DATABASE %s default character set utf8mb4 " + \
+                  "default collate utf8mb4_unicode_ci"
         cursor.execute(sql % self.name)
         self.conn.close()
 
@@ -82,18 +87,25 @@ class DatabaseManager(object):
     def create_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        username = generate_user(username)
-        password = generate_password(username)
-        sql = ("grant all privileges on {0}.* to '{1}'@'%'"
-               " identified by '{2}'")
-        cursor.execute(sql.format(self.name, username, password))
+        username = generate_user(username, host)
+        password = generate_password()
+
+        if settings.MSQL_5_VERSION_ENABLED:
+            sql = ("grant all privileges on {0}.* to '{1}'@'%'"
+                   " identified by '{2}'")
+            cursor.execute(sql.format(self.name, username, password))
+        else:
+            sql = ("CREATE USER '{0}'@'%' IDENTIFIED BY '{1}';")
+            cursor.execute(sql.format(username, password))
+            sql = ("GRANT ALL PRIVILEGES ON {0}.* TO '{1}'@'%';")
+            cursor.execute(sql.format(self.name, username))
         self.conn.close()
         return username, password
 
     def drop_user(self, username, host):
         self.conn.open()
         cursor = self.conn.cursor()
-        username = generate_user(username)
+        username = generate_user(username, host)
         cursor.execute("drop user '{0}'@'%'".format(username))
         self.conn.close()
 
@@ -164,7 +176,7 @@ class Instance(models.Model):
 
 
 class ProvisionedInstance(models.Model):
-    instance = models.ForeignKey(Instance, null=True, blank=True, unique=True)
+    instance = models.OneToOneField(Instance, null=True, blank=True, on_delete = models.CASCADE)
     host = models.CharField(max_length=500)
     port = models.IntegerField(default=3306)
     admin_user = models.CharField(max_length=255, default="root")
@@ -257,6 +269,6 @@ def _create_dedicate_database(instance, ec2_client):
 
 def canonicalize_db_name(name):
     if re.search(r"[\W\s]", name) is not None:
-        prefix = hashlib.sha1(name).hexdigest()[:10]
+        prefix = hashlib.sha1(str(name).encode('utf-8')).hexdigest()[:10]
         name = re.sub(r"[\W\s]", "_", name) + prefix
     return name

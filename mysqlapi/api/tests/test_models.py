@@ -378,8 +378,6 @@ class CanonicalizeTestCase(TestCase):
 
 
 class GeneratePasswordTestCase(TestCase):
-    @override_settings(SALT="salt")
     def test_generate_password(self):
-        expected = hashlib.sha1("bla" + settings.SALT).hexdigest()
-        result = models.generate_password("bla")
-        self.assertEqual(expected, result)
+        result = models.generate_password()
+        self.assertIsNotNone(result)
